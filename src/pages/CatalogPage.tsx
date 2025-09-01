@@ -7,6 +7,7 @@ import { useProducts } from '../entities/product/api'
 import { useProductFilters, CATEGORIES } from '../entities/product/model'
 import { useTelegram } from '../shared/lib/telegram.tsx'
 import type { Product } from '../shared/types'
+import { useCallback } from 'react'
 
 const CatalogPage: React.FC = () => {
   const navigate = useNavigate()
@@ -20,17 +21,22 @@ const CatalogPage: React.FC = () => {
 
   const getFilteredProducts = (): Product[] => {
     if (isSearching) return searchResults
-    
+
     if (selectedCategory === 'all') return products
     return products.filter(p => p.category === selectedCategory)
   }
 
   const displayProducts = getFilteredProducts()
 
-  const handleSearchResults = (results: Product[], searching: boolean) => {
-    setSearchResults(results)
-    setIsSearching(searching)
-  }
+  const handleSearchResults = useCallback((results: Product[], searching: boolean) => {
+    setSearchResults(prev => {
+      const sameResults = prev.length === results.length && prev.every((p, i) => p.id === results[i]?.id);
+      return sameResults ? prev : results;
+    });
+
+    setIsSearching(prev => prev === searching ? prev : searching);
+  }, []);
+
 
   const handleProductClick = (product: Product) => {
     haptic.light()
