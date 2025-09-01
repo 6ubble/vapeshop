@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Product } from './product';
+import type { Product } from '../shared/types';
 
 interface CartItem {
   product: Product;

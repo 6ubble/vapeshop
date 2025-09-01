@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
-import { Input } from '../shared/ui';
-import { useProductSearch } from '../entities/product';
-import { debounce } from '../shared/api';
+import { Input } from '../shared/Ui';
+import { useProductSearch } from '../entities/Product';
+import { debounce } from '../shared/utils';
 import type { Product } from '../shared/types';
 
 interface SearchProps {
