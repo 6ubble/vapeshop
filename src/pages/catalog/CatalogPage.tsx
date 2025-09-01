@@ -1,168 +1,95 @@
-import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Filter, Grid, List, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { useProducts } from '../../../entities/product/api';
+import { SearchInput } from '../../../features/product-search';
+import { ProductCard } from '../../../widgets/product-card';
+import { LoadingGrid, EmptyState } from '../../../shared/ui';
 
-import { useTelegram } from '../../app/telegram/TelegramProvider';
-import { Input, Button, Card, SectionHeader, Badge } from '../../shared/ui';
-import { ProductCard } from '../../widgets/product-card/ProductCard';
-import { PRODUCT_CATEGORIES, MOCK_PRODUCTS, SORT_OPTIONS } from '../../shared/config';
-import type { ProductFilters } from '../../shared/types';
+const CATEGORIES = [
+  { id: 'all', name: 'Все', emoji: '🛍️' },
+  { id: 'pod-systems', name: 'Pod-системы', emoji: '🔋' },
+  { id: 'disposable', name: 'Одноразовые', emoji: '💨' },
+  { id: 'liquids', name: 'Жидкости', emoji: '🧪' }
+];
 
 export const CatalogPage: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { haptic } = useTelegram();
-
-  // Состояния
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const { data: products = [], isLoading, error } = useProducts();
+  
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<ProductFilters>({
-    search: searchParams.get('search') || '',
-    sortBy: 'popularity'
-  });
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Мокап отфильтрованных товаров
-  const filteredProducts = MOCK_PRODUCTS.filter(product => {
-    if (filters.search && !product.name.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false;
+  // Фильтрация товаров
+  const displayProducts = useMemo(() => {
+    if (isSearching && searchResults.length >= 0) {
+      return searchResults;
     }
-    if (filters.category && product.category !== filters.category) {
-      return false;
+    
+    if (selectedCategory === 'all') {
+      return products;
     }
-    return true;
-  });
+    
+    return products.filter(product => product.category === selectedCategory);
+  }, [products, searchResults, selectedCategory, isSearching]);
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setFilters(prev => ({ ...prev, search: query }));
-    haptic.light();
+  const handleSearchResults = (results: Product[]) => {
+    setSearchResults(results);
+    setIsSearching(true);
   };
 
-  const handleProductClick = (productId: string) => {
-    haptic.light();
-    navigate(`/product/${productId}`);
-  };
-
-  const handleCategoryFilter = (categoryId: string) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      category: prev.category === categoryId ? undefined : categoryId as any 
-    }));
-    haptic.light();
-  };
-
-  const toggleViewMode = () => {
-    setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
-    haptic.light();
-  };
+  if (isLoading) return <LoadingGrid />;
+  if (error) return <EmptyState title="Ошибка загрузки" />;
 
   return (
     <div className="space-y-4">
       {/* Поиск */}
-      <Card padding="md">
-        <Input
-          value={searchQuery}
-          onChange={handleSearch}
-          placeholder="Поиск товаров..."
-          icon={<Search size={20} />}
-        />
-      </Card>
+      <SearchInput 
+        onResultsChange={handleSearchResults}
+        placeholder="Поиск товаров..."
+      />
 
-      {/* Фильтры и сортировка */}
-      <div className="flex items-center gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex-1"
-        >
-          <SlidersHorizontal size={16} />
-          Фильтры
-          {(filters.category) && (
-            <Badge variant="info" size="sm">1</Badge>
-          )}
-        </Button>
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleViewMode}
-          className="px-3"
-        >
-          {viewMode === 'grid' ? <List size={16} /> : <Grid size={16} />}
-        </Button>
+      {/* Категории */}
+      <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+        {CATEGORIES.map(category => (
+          <button
+            key={category.id}
+            onClick={() => {
+              setSelectedCategory(category.id);
+              setIsSearching(false);
+            }}
+            className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+              selectedCategory === category.id && !isSearching
+                ? 'bg-tg-button text-tg-button-text'
+                : 'bg-tg-secondary-bg text-tg-text'
+            }`}
+          >
+            {category.emoji} {category.name}
+          </button>
+        ))}
       </div>
 
-      {/* Развернутые фильтры */}
-      {showFilters && (
-        <Card>
-          <SectionHeader>Категории</SectionHeader>
-          <div className="grid grid-cols-2 gap-2">
-            {PRODUCT_CATEGORIES.map((category) => (
-              <Button
-                key={category.id}
-                variant={filters.category === category.id ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => handleCategoryFilter(category.id)}
-                className="text-sm"
-              >
-                {category.emoji} {category.name}
-              </Button>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* Результаты поиска */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-tg-hint">
-          Найдено товаров: {filteredProducts.length}
-        </span>
-        
-        <select 
-          value={filters.sortBy || 'popularity'}
-          onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value as any }))}
-          className="text-sm bg-tg-secondary-bg border-none rounded px-3 py-1"
-        >
-          {SORT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Список товаров */}
-      <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3'}>
-        {filteredProducts.map((product) => (
+      {/* Товары */}
+      <div className={
+        viewMode === 'grid' 
+          ? 'grid grid-cols-2 gap-3' 
+          : 'space-y-3'
+      }>
+        {displayProducts.map(product => (
           <ProductCard
             key={product.id}
             product={product}
-            onClick={() => handleProductClick(product.id)}
-            variant={viewMode === 'grid' ? 'vertical' : 'horizontal'}
+            variant={viewMode}
+            onClick={() => navigate(`/product/${product.id}`)}
           />
         ))}
       </div>
 
-      {/* Пустое состояние */}
-      {filteredProducts.length === 0 && (
-        <Card className="text-center py-12">
-          <div className="text-4xl mb-4">🔍</div>
-          <h3 className="text-lg font-semibold mb-2">Товары не найдены</h3>
-          <p className="text-tg-hint mb-4">
-            Попробуйте изменить параметры поиска
-          </p>
-          <Button 
-            variant="outline"
-            onClick={() => {
-              setSearchQuery('');
-              setFilters({ sortBy: 'popularity' });
-            }}
-          >
-            Сбросить фильтры
-          </Button>
-        </Card>
+      {displayProducts.length === 0 && (
+        <EmptyState 
+          title="Товары не найдены"
+          description="Попробуйте изменить запрос или категорию"
+        />
       )}
     </div>
   );

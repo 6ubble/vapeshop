@@ -1,20 +1,49 @@
-import { apiClient } from '../../shared/api/api';
-import type { Product } from './types';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '../../shared/api/client';
 
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  category: string;
+  brand: string;
+  inStock: boolean;
+  rating: number;
+  description: string;
+  tags: string[];
+}
+
+// API функции
 export const productApi = {
-  getAll: async (): Promise<Product[]> => {
-    return apiClient.get('/products');
-  },
+  getAll: () => apiClient.get<Product[]>('/products'),
+  getById: (id: string) => apiClient.get<Product>(`/products/${id}`),
+  search: (query: string) => apiClient.get<Product[]>(`/products/search?q=${query}`)
+};
 
-  getById: async (id: string): Promise<Product> => {
-    return apiClient.get(`/products/${id}`);
-  },
+// React Query хуки
+export const useProducts = () => {
+  return useQuery({
+    queryKey: ['products'],
+    queryFn: productApi.getAll,
+    staleTime: 10 * 60 * 1000, // Товары кешируем на 10 минут
+  });
+};
 
-  getByCategory: async (category: string): Promise<Product[]> => {
-    return apiClient.get(`/products?category=${category}`);
-  },
+export const useProduct = (id: string) => {
+  return useQuery({
+    queryKey: ['product', id],
+    queryFn: () => productApi.getById(id),
+    enabled: !!id,
+  });
+};
 
-  search: async (query: string): Promise<Product[]> => {
-    return apiClient.get(`/products/search?q=${encodeURIComponent(query)}`);
-  }
+export const useProductSearch = (query: string) => {
+  return useQuery({
+    queryKey: ['products', 'search', query],
+    queryFn: () => productApi.search(query),
+    enabled: query.length > 2,
+    staleTime: 2 * 60 * 1000, // Поиск кешируем на 2 минуты
+  });
 };
