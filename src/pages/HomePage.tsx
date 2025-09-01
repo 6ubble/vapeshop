@@ -1,50 +1,44 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, Gift, Star, Zap } from 'lucide-react';
-import { Card, SectionHeader, Badge } from '../shared/Ui';
-import { ProductCard, ProductCardSkeleton } from '../widgets/ProductCard';
-import { useProducts } from '../entities/product';
-import { useTelegram } from '../shared/Telegram';
+import React from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Search, Gift, Star } from 'lucide-react'
+import { Card, Badge } from '../shared/ui'
+import { ProductCard } from '../widgets/product-card/ui'
+import { useProducts } from '../entities/product/api'
+import { useTelegram } from '../shared/lib/telegram.tsx'
 
-export const HomePage: React.FC = () => {
-  const navigate = useNavigate();
-  const { user, haptic } = useTelegram();
-  const { data: products, isLoading } = useProducts();
+const HomePage: React.FC = () => {
+  const navigate = useNavigate()
+  const { user, haptic } = useTelegram()
+  const { data: products = [] } = useProducts()
   
-  // Фильтруем товары для показа на главной
-  const popularProducts = products?.filter(p => p.isPopular).slice(0, 4) || [];
-  const newProducts = products?.filter(p => p.isNew).slice(0, 2) || [];
+  const popularProducts = products.filter(p => p.isPopular).slice(0, 4)
+  const newProducts = products.filter(p => p.isNew).slice(0, 2)
 
   const quickActions = [
     {
       title: 'Pod-системы',
       emoji: '🔋',
-      path: '/catalog?category=pods',
-      description: 'Многоразовые устройства'
+      path: '/catalog?category=pods'
     },
     {
       title: 'Одноразовые',
-      emoji: '💨', 
-      path: '/catalog?category=disposable',
-      description: 'Готовые к использованию'
+      emoji: '💨',
+      path: '/catalog?category=disposable'
     },
     {
       title: 'Жидкости',
       emoji: '🧪',
-      path: '/catalog?category=liquids', 
-      description: 'Вкусы для заправки'
+      path: '/catalog?category=liquids'
     },
     {
       title: 'Популярное',
       icon: <Star size={24} className="text-yellow-500" />,
-      path: '/catalog?filter=popular',
-      description: 'Хиты продаж'
+      path: '/catalog?filter=popular'
     }
-  ];
+  ]
 
   return (
     <div className="space-y-6">
-      {/* Приветствие с персонализацией */}
       <Card className="text-center bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="mb-4">
           <h1 className="text-2xl font-bold mb-2">
@@ -57,7 +51,6 @@ export const HomePage: React.FC = () => {
           )}
         </div>
         
-        {/* Поисковая строка */}
         <Link 
           to="/catalog" 
           onClick={() => haptic.light()}
@@ -68,33 +61,25 @@ export const HomePage: React.FC = () => {
             <span className="text-tg-hint text-left flex-1">
               Поиск товаров...
             </span>
-            <Zap size={16} className="text-tg-button" />
           </div>
         </Link>
       </Card>
 
-      {/* Промо баннер */}
-      <Card className="bg-gradient-to-r from-purple-500 to-pink-500 text-white overflow-hidden relative">
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-xl mb-1">Скидка 20%</h3>
-              <p className="text-sm opacity-90 mb-2">На первый заказ</p>
-              <Badge variant="warning" >
-                Промокод: WELCOME20
-              </Badge>
-            </div>
-            <Gift size={48} className="opacity-80" />
+      <Card className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-xl mb-1">Скидка 20%</h3>
+            <p className="text-sm opacity-90 mb-2">На первый заказ</p>
+            <Badge variant="warning">
+              Промокод: WELCOME20
+            </Badge>
           </div>
+          <Gift size={48} className="opacity-80" />
         </div>
-        
-        {/* Декоративный элемент */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -translate-y-16 translate-x-16" />
       </Card>
 
-      {/* Быстрые действия */}
       <div>
-        <SectionHeader>Категории</SectionHeader>
+        <h2 className="text-lg font-bold mb-3">Категории</h2>
         
         <div className="grid grid-cols-2 gap-4">
           {quickActions.map((action, index) => (
@@ -103,26 +88,12 @@ export const HomePage: React.FC = () => {
               to={action.path}
               onClick={() => haptic.light()}
             >
-              <Card className="text-center hover:true group border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <div className={`w-16 h-16 bg-gradient-to-r ${
-                  action.emoji === '🔋' ? 'from-blue-500 to-cyan-500' :
-                  action.emoji === '💨' ? 'from-purple-500 to-pink-500' :
-                  action.emoji === '🧪' ? 'from-emerald-500 to-teal-500' :
-                  'from-orange-500 to-red-500'
-                } rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  {action.emoji ? (
-                    <div className="text-2xl">{action.emoji}</div>
-                  ) : (
-                    <div className="flex justify-center">{action.icon}</div>
-                  )}
+              <Card className="text-center hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-3 text-white text-2xl">
+                  {action.emoji || action.icon}
                 </div>
-                
-                <div className="font-semibold text-slate-800 mb-2 text-sm">
+                <div className="font-semibold text-sm">
                   {action.title}
-                </div>
-                
-                <div className="text-xs text-slate-500 leading-relaxed">
-                  {action.description}
                 </div>
               </Card>
             </Link>
@@ -130,57 +101,43 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Популярные товары */}
-      <div>
-        <SectionHeader>
-          🔥 Популярные товары
-          <Link to="/catalog?filter=popular">
-            <button 
-              className="text-tg-button text-sm font-medium hover:underline"
-              onClick={() => haptic.light()}
-            >
-              Все →
-            </button>
-          </Link>
-        </SectionHeader>
-        
-        {isLoading ? (
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map(i => (
-              <ProductCardSkeleton key={i} variant="grid" />
-            ))}
+      {popularProducts.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold">🔥 Популярные товары</h2>
+            <Link to="/catalog?filter=popular">
+              <button className="text-tg-button text-sm font-medium">
+                Все →
+              </button>
+            </Link>
           </div>
-        ) : (
+          
           <div className="grid grid-cols-2 gap-3">
             {popularProducts.map(product => (
               <ProductCard
                 key={product.id}
                 product={product}
                 onClick={() => {
-                  haptic.light();
-                  navigate(`/product/${product.id}`);
+                  haptic.light()
+                  navigate(`/product/${product.id}`)
                 }}
                 variant="grid"
               />
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Новинки */}
       {newProducts.length > 0 && (
         <div>
-          <SectionHeader>
-            ✨ Новинки
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold">✨ Новинки</h2>
             <Link to="/catalog?filter=new">
-              <button 
-                className="text-tg-button text-sm font-medium hover:underline"
-                onClick={() => haptic.light()}
-              >
+              <button className="text-tg-button text-sm font-medium">
                 Все →
               </button>
             </Link>
-          </SectionHeader>
+          </div>
           
           <div className="space-y-3">
             {newProducts.map(product => (
@@ -188,8 +145,8 @@ export const HomePage: React.FC = () => {
                 key={product.id}
                 product={product}
                 onClick={() => {
-                  haptic.light();
-                  navigate(`/product/${product.id}`);
+                  haptic.light()
+                  navigate(`/product/${product.id}`)
                 }}
                 variant="list"
               />
@@ -197,54 +154,8 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Информационный блок */}
-      <Card className="bg-orange-50 border-l-4 border-orange-500">
-        <div className="flex gap-3">
-          <div className="text-orange-500 text-xl">⚠️</div>
-          <div className="text-sm">
-            <div className="font-medium text-orange-800 mb-1">
-              Возрастные ограничения 18+
-            </div>
-            <div className="text-orange-700">
-              Продажа табачных изделий лицам младше 18 лет запрещена законом РФ
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Контакты и поддержка */}
-      <Card className="text-center">
-        <div className="space-y-3">
-          <h3 className="font-semibold">Нужна помощь?</h3>
-          
-          <div className="flex justify-center gap-4">
-            <button 
-              onClick={() => {
-                haptic.light();
-                window.Telegram?.WebApp?.openTelegramLink('https://t.me/vapeshop_support');
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-tg-button text-tg-button-text rounded-lg hover:opacity-90 transition-opacity"
-            >
-              💬 Поддержка
-            </button>
-            
-            <button
-              onClick={() => {
-                haptic.light();
-                window.Telegram?.WebApp?.openTelegramLink('https://t.me/vapeshop_channel');
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-tg-secondary-bg text-tg-text rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              📢 Канал
-            </button>
-          </div>
-          
-          <div className="text-xs text-tg-hint">
-            Режим работы: 09:00 — 22:00
-          </div>
-        </div>
-      </Card>
     </div>
-  );
-};
+  )
+}
+
+export default HomePage
