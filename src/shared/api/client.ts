@@ -39,7 +39,7 @@ interface ApiResponse<T> {
       return this.request<T>(endpoint);
     }
   
-    post<T>(endpoint: string, data?: any) {
+    post<T>(endpoint: string, data?: unknown) {
       return this.request<T>(endpoint, {
         method: 'POST',
         body: data ? JSON.stringify(data) : undefined,

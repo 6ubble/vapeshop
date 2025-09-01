@@ -1,19 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../shared/api/client';
-
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  category: string;
-  brand: string;
-  inStock: boolean;
-  rating: number;
-  description: string;
-  tags: string[];
-}
+import type { Product } from '../../shared/types';
 
 // API функции
 export const productApi = {

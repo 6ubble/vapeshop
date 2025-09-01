@@ -64,14 +64,14 @@ class ApiClient {
     return this.request<T>(endpoint, { method: 'GET' });
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
     });
   }
 
-  async put<T>(endpoint: string, data?: any): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
@@ -83,13 +83,13 @@ class ApiClient {
   }
 
   // Специальный метод для загрузки файлов
-  async upload<T>(endpoint: string, file: File, additionalData?: any): Promise<T> {
+  async upload<T>(endpoint: string, file: File, additionalData?: Record<string, unknown>): Promise<T> {
     const formData = new FormData();
     formData.append('file', file);
     
     if (additionalData) {
       Object.keys(additionalData).forEach(key => {
-        formData.append(key, additionalData[key]);
+        formData.append(key, String(additionalData[key]));
       });
     }
 
@@ -124,7 +124,7 @@ export const mockApiClient = {
     throw new Error('Mock endpoint not implemented');
   },
 
-  post: async <T>(endpoint: string, data?: any): Promise<T> => {
+  post: async <T>(endpoint: string, data?: unknown): Promise<T> => {
     console.log('Mock API POST:', endpoint, data);
     
     await new Promise(resolve => setTimeout(resolve, 800));
@@ -133,7 +133,7 @@ export const mockApiClient = {
     return { success: true, id: Date.now().toString() } as T;
   },
 
-  put: async <T>(endpoint: string, data?: any): Promise<T> => {
+  put: async <T>(endpoint: string, data?: unknown): Promise<T> => {
     console.log('Mock API PUT:', endpoint, data);
     
     await new Promise(resolve => setTimeout(resolve, 600));

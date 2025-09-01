@@ -25,7 +25,7 @@ export const formatPrice = (price: number): string => {
     return phone;
   };
   
-  export const debounce = <T extends (...args: any[]) => any>(
+  export const debounce = <T extends (...args: unknown[]) => unknown>(
     func: T,
     delay: number
   ): ((...args: Parameters<T>) => void) => {
@@ -36,7 +36,7 @@ export const formatPrice = (price: number): string => {
     };
   };
   
-  export const throttle = <T extends (...args: any[]) => any>(
+  export const throttle = <T extends (...args: unknown[]) => unknown>(
     func: T,
     delay: number
   ): ((...args: Parameters<T>) => void) => {
@@ -61,7 +61,7 @@ export const formatPrice = (price: number): string => {
   };
   
   export const isValidPhone = (phone: string): boolean => {
-    const phoneRegex = /^(\+7|8)?[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/;
+    const phoneRegex = /^(\+7|8)?[\s-]?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$/;
     return phoneRegex.test(phone);
   };
   

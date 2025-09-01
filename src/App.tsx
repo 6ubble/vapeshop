@@ -1,19 +1,22 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
-import { QueryProvider } from './app/providers/QueryProvider.tsx';
+import { QueryProvider } from './app/providers/QueryProvider';
 import { TelegramProvider } from './app/telegram';
-import { AppRouter } from './app/router/';
+import { AppRouter } from './app/router';
+import { ErrorBoundary } from './shared/ui/ErrorBoundary';
 
 const App: React.FC = () => {
   return (
-    <QueryProvider>
-      <TelegramProvider>
-        <BrowserRouter>
-          <AppRouter />
-        </BrowserRouter>
-      </TelegramProvider>
-    </QueryProvider>
+    <ErrorBoundary>
+      <QueryProvider>
+        <TelegramProvider>
+          <BrowserRouter>
+            <AppRouter />
+          </BrowserRouter>
+        </TelegramProvider>
+      </QueryProvider>
+    </ErrorBoundary>
   );
 };
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { useProductSearch } from '../../../entities/product/api';
 import { useDebounce } from '../../../shared/lib/hooks';
+import type { Product } from '../../../shared/types';
 
 interface SearchInputProps {
   onResultsChange: (products: Product[]) => void;

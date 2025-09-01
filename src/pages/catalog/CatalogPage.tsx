@@ -1,8 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { useProducts } from '../../../entities/product/api';
-import { SearchInput } from '../../../features/product-search';
-import { ProductCard } from '../../../widgets/product-card';
-import { LoadingGrid, EmptyState } from '../../../shared/ui';
+import { useProducts } from '../../entities/product/api';
+import { SearchInput } from '../../features/product-search/ui/SearchInput';
+import  { ProductCard } from '../../widgets/product-card/ProductCard';
+import {  EmptyState } from '../../shared/ui';
+import  {LoadingGrid} from '../../shared/ui/LoadingGrid';
+import { useNavigate } from 'react-router-dom';
+import type { Product } from '../../shared/types';
 
 const CATEGORIES = [
   { id: 'all', name: 'Все', emoji: '🛍️' },
@@ -17,7 +20,7 @@ export const CatalogPage: React.FC = () => {
   
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [viewMode] = useState<'grid' | 'list'>('list');
   const [isSearching, setIsSearching] = useState(false);
 
   // Фильтрация товаров

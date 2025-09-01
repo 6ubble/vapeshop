@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, ShoppingBag, Heart, Settings, LogOut } from 'lucide-react';
+import { ShoppingBag, Heart, Settings } from 'lucide-react';
 
-import { useTelegram } from '../../app/telegram/TelegramProvider';
-import { Card, Button, Divider } from '../../shared/ui';
+import { useTelegram } from '../../app/telegram';
+import { Card, Divider } from '../../shared/ui';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();

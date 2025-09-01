@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 
-import { useTelegram } from '../../app/telegram/TelegramProvider';
+import { useTelegram } from '../../app/telegram';
 import { Button, Card, Input, Divider, EmptyState } from '../../shared/ui';
 import type { CartItem } from '../../shared/types';
 import { MOCK_PRODUCTS, APP_CONFIG } from '../../shared/config';
 
 export const CartPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, showMainButton, hideMainButton, haptic } = useTelegram();
+  const { showMainButton, hideMainButton, haptic } = useTelegram();
 
   // Мокап данных корзины
   const [cartItems, setCartItems] = useState<CartItem[]>([
@@ -34,6 +34,25 @@ export const CartPage: React.FC = () => {
   const deliveryFee = subtotal >= 2000 ? 0 : 300; // Бесплатная доставка от 2000₽
   const total = subtotal - discount + deliveryFee;
 
+  const handleCheckout = useCallback(() => {
+    if (total < APP_CONFIG.minOrderAmount) {
+      // Показать предупреждение о минимальной сумме
+      return;
+    }
+    
+    // Переход к оформлению заказа
+    navigate('/checkout', {
+      state: {
+        cartItems,
+        subtotal,
+        discount: promoDiscount,
+        deliveryFee,
+        total,
+        promoCode
+      }
+    });
+  }, [total, cartItems, subtotal, promoDiscount, deliveryFee, promoCode, navigate]);
+
   useEffect(() => {
     if (cartItems.length > 0) {
       showMainButton(`Оформить заказ • ${formatPrice(total)}`, () => {
@@ -45,7 +64,7 @@ export const CartPage: React.FC = () => {
     }
 
     return () => hideMainButton();
-  }, [cartItems, total, showMainButton, hideMainButton, haptic]);
+  }, [cartItems, total, showMainButton, hideMainButton, haptic, handleCheckout]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ru-RU', {
@@ -95,25 +114,6 @@ export const CartPage: React.FC = () => {
       // Можно показать ошибку
       setPromoDiscount(0);
     }
-  };
-
-  const handleCheckout = () => {
-    if (total < APP_CONFIG.minOrderAmount) {
-      // Показать предупреждение о минимальной сумме
-      return;
-    }
-    
-    // Переход к оформлению заказа
-    navigate('/checkout', {
-      state: {
-        cartItems,
-        subtotal,
-        discount: promoDiscount,
-        deliveryFee,
-        total,
-        promoCode
-      }
-    });
   };
 
   if (cartItems.length === 0) {

@@ -2,8 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingBag, Star, Zap, Gift, TrendingUp } from 'lucide-react';
 
-import { useTelegram } from '../../app/telegram/TelegramProvider';
-import { Button, Card, SectionHeader, Badge } from '../../shared/ui';
+import { useTelegram } from '../../app/telegram';
+import { Button, Card, SectionHeader, Badge } from '../../shared/ui/index';
 import { ProductCard } from '../../widgets/product-card/ProductCard';
 import { PRODUCT_CATEGORIES, MOCK_PRODUCTS } from '../../shared/config';
 
@@ -114,7 +114,7 @@ export const HomePage: React.FC = () => {
             <Card clickable className="text-center">
               <Zap size={24} className="mx-auto mb-2 text-tg-button" />
               <div className="font-medium text-sm">Новинки</div>
-              <Badge variant="info" size="sm">12 товаров</Badge>
+              <Badge variant="info" size="sm" className="">12 товаров</Badge>
             </Card>
           </Link>
           
@@ -122,7 +122,7 @@ export const HomePage: React.FC = () => {
             <Card clickable className="text-center">
               <Star size={24} className="mx-auto mb-2 text-yellow-500" />
               <div className="font-medium text-sm">Топ рейтинг</div>
-              <Badge variant="warning" size="sm">★ 4.5+</Badge>
+              <Badge variant="warning" size="sm" className="">★ 4.5+</Badge>
             </Card>
           </Link>
           
@@ -130,7 +130,7 @@ export const HomePage: React.FC = () => {
             <Card clickable className="text-center">
               <Gift size={24} className="mx-auto mb-2 text-red-500" />
               <div className="font-medium text-sm">Скидки</div>
-              <Badge variant="error" size="sm">до -30%</Badge>
+              <Badge variant="error" size="sm" className="">до -30%</Badge>
             </Card>
           </Link>
           
@@ -138,7 +138,7 @@ export const HomePage: React.FC = () => {
             <Card clickable className="text-center">
               <TrendingUp size={24} className="mx-auto mb-2 text-green-500" />
               <div className="font-medium text-sm">Хиты продаж</div>
-              <Badge variant="success" size="sm">ТОП</Badge>
+              <Badge variant="success" size="sm" className="">ТОП</Badge>
             </Card>
           </Link>
         </div>

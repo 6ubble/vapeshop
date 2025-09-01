@@ -2,7 +2,7 @@ import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Home, Search, ShoppingCart, User, Grid3X3 } from 'lucide-react';
 
-import { useTelegram } from '../../app/telegram/TelegramProvider';
+import { useTelegram } from '../../app/telegram';
 
 interface NavItem {
   path: string;

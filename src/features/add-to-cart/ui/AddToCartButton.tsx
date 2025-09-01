@@ -2,8 +2,8 @@ import React from 'react';
 import { ShoppingCart, Plus, Check } from 'lucide-react';
 import { Button } from '../../../shared/ui';
 import { useCartStore } from '../../../entities/cart/store';
-import { useTelegram } from '../../../app/telegram/TelegramProvider';
-import type { Product } from '../../../entities/product/api';
+import { useTelegram } from '../../../app/telegram';
+import type { Product } from '../../../shared/types';
 
 interface AddToCartButtonProps {
   product: Product;
@@ -27,7 +27,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     
     if (!product.inStock) return;
     
-    haptic('medium');
+    haptic.medium();
     addItem(product);
   };
 

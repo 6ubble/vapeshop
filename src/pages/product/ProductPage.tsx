@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share, Star } from 'lucide-react';
 
-import { useTelegram } from '../../app/telegram/TelegramProvider';
+import { useTelegram } from '../../app/telegram';
 import { Button, Card, Badge } from '../../shared/ui';
 import { MOCK_PRODUCTS } from '../../shared/config';
 
@@ -81,7 +81,7 @@ export const ProductPage: React.FC = () => {
               <div className="text-2xl font-bold text-tg-button">
                 {formatPrice(product.price)}
               </div>
-              {product.originalPrice && (
+              {('originalPrice' in product) && product.originalPrice && (
                 <div className="text-sm text-tg-hint line-through">
                   {formatPrice(product.originalPrice)}
                 </div>
@@ -96,10 +96,10 @@ export const ProductPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {product.isNew && <Badge variant="info">Новинка</Badge>}
-            {product.isPopular && <Badge variant="warning">Хит</Badge>}
-            {product.tags.map(tag => (
-              <Badge key={tag}>{tag}</Badge>
+            {product.isNew && <Badge variant="info" className="">Новинка</Badge>}
+                          {product.isPopular && <Badge variant="warning" className="">Хит</Badge>}
+                        {product.tags.map((tag: string) => (
+              <Badge key={tag} className="">{tag}</Badge>
             ))}
           </div>
         </div>
@@ -117,7 +117,7 @@ export const ProductPage: React.FC = () => {
       <Card>
         <h3 className="font-semibold mb-3">Характеристики</h3>
         <div className="space-y-2">
-          {product.specifications.map((spec, index) => (
+          {product.specifications.map((spec: { name: string; value: string }, index: number) => (
             <div key={index} className="flex justify-between">
               <span className="text-tg-hint">{spec.name}:</span>
               <span className="font-medium">{spec.value}</span>

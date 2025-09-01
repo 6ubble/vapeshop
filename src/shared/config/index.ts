@@ -1,3 +1,5 @@
+import type { Product } from '../types';
+
 // API конфигурация
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.vapeshop.example.com';
 export const IS_DEV = import.meta.env.DEV;
@@ -148,7 +150,7 @@ export const MOCK_PRODUCTS = [
       'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
       'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=400'
     ],
-    category: 'pod-systems' as const,
+    category: 'pod-systems',
     brand: 'JUUL',
     inStock: true,
     stockCount: 15,
@@ -173,7 +175,7 @@ export const MOCK_PRODUCTS = [
     images: [
       'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400'
     ],
-    category: 'disposable' as const,
+    category: 'disposable',
     brand: 'HQD',
     inStock: true,
     stockCount: 45,
@@ -190,4 +192,4 @@ export const MOCK_PRODUCTS = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }
-] as const;
+] as Product[];
