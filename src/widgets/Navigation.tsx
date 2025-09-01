@@ -44,8 +44,11 @@ export const Navigation: React.FC = () => {
   };
   
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-      <div className="max-w-md mx-auto px-2 py-1">
+    <nav className="fixed bottom-0 left-0 right-0 z-40">
+      {/* Фон с размытием */}
+      <div className="absolute inset-0 bg-white/80 backdrop-blur-xl border-t border-slate-200/50" />
+      
+      <div className="relative max-w-md mx-auto px-6 py-4">
         <div className="flex items-center justify-around">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -57,25 +60,41 @@ export const Navigation: React.FC = () => {
                 to={item.path}
                 onClick={() => haptic.light()}
                 className={`
-                  flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200
+                  group flex flex-col items-center py-3 px-4 rounded-2xl transition-all duration-300
                   ${active 
-                    ? 'text-tg-button bg-tg-button bg-opacity-10' 
-                    : 'text-tg-hint hover:text-tg-text'
+                    ? 'text-indigo-600 bg-gradient-to-r from-indigo-50 to-purple-50 shadow-lg scale-110' 
+                    : 'text-slate-500 hover:text-slate-700 hover:scale-105'
                   }
                 `}
               >
-                <div className="relative">
-                  <Icon size={22} />
+                <div className="relative mb-2">
+                  <div className={`
+                    p-2 rounded-xl transition-all duration-300
+                    ${active 
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' 
+                      : 'bg-slate-100 text-slate-600 group-hover:bg-slate-200 group-hover:shadow-md'
+                    }
+                  `}>
+                    <Icon size={20} />
+                  </div>
                   
                   {/* Бейдж корзины */}
                   {item.path === '/cart' && count > 0 && (
-                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {count > 99 ? '99+' : count}
+                    <div className="absolute -top-1 -right-1">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-red-500 rounded-full blur-sm opacity-75 animate-pulse" />
+                        <div className="relative bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg">
+                          {count > 99 ? '99+' : count}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
                 
-                <span className="text-xs mt-1 font-medium">
+                <span className={`
+                  text-xs font-medium transition-all duration-300
+                  ${active ? 'text-indigo-600' : 'text-slate-500 group-hover:text-slate-700'}
+                `}>
                   {item.label}
                 </span>
               </Link>

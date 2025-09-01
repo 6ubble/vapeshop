@@ -51,8 +51,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Скидка */}
         {discount > 0 && (
-          <div className="absolute top-3 left-3 z-10">
-            <Badge variant="error">-{discount}%</Badge>
+          <div className="absolute top-4 left-4 z-10">
+            <Badge variant="error" size="md">-{discount}%</Badge>
           </div>
         )}
 
@@ -134,7 +134,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Изображение */}
       <div className="w-20 h-20 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 relative">
         {discount > 0 && (
-          <div className="absolute top-1 left-1 z-10">
+          <div className="absolute top-2 left-2 z-10">
             <Badge variant="error" size="sm">-{discount}%</Badge>
           </div>
         )}

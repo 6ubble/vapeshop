@@ -96,27 +96,32 @@ export const HomePage: React.FC = () => {
       <div>
         <SectionHeader>Категории</SectionHeader>
         
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {quickActions.map((action, index) => (
             <Link 
               key={index}
               to={action.path}
               onClick={() => haptic.light()}
             >
-              <Card className="text-center hover:shadow-md transition-shadow">
-                <div className="mb-3">
+              <Card className="text-center hover:true group border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className={`w-16 h-16 bg-gradient-to-r ${
+                  action.emoji === '🔋' ? 'from-blue-500 to-cyan-500' :
+                  action.emoji === '💨' ? 'from-purple-500 to-pink-500' :
+                  action.emoji === '🧪' ? 'from-emerald-500 to-teal-500' :
+                  'from-orange-500 to-red-500'
+                } rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
                   {action.emoji ? (
-                    <div className="text-3xl mb-2">{action.emoji}</div>
+                    <div className="text-2xl">{action.emoji}</div>
                   ) : (
-                    <div className="flex justify-center mb-2">{action.icon}</div>
+                    <div className="flex justify-center">{action.icon}</div>
                   )}
                 </div>
                 
-                <div className="font-medium text-tg-text mb-1">
+                <div className="font-semibold text-slate-800 mb-2 text-sm">
                   {action.title}
                 </div>
                 
-                <div className="text-xs text-tg-hint">
+                <div className="text-xs text-slate-500 leading-relaxed">
                   {action.description}
                 </div>
               </Card>
