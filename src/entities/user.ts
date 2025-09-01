@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { api } from '../shared/api';
 import type { TelegramUser } from '../shared/types';
 
@@ -108,17 +109,15 @@ export const useUserStore = create<UserStore>()(
     }),
     { 
       name: 'vapeshop-user',
-      // Сериализация Set для localStorage
-      serialize: (state) => JSON.stringify({
+      // Кастомная сериализация для Set
+      partialize: (state) => ({
         ...state,
         favorites: Array.from(state.favorites)
       }),
-      deserialize: (str) => {
-        const parsed = JSON.parse(str);
-        return {
-          ...parsed,
-          favorites: new Set(parsed.favorites || [])
-        };
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.favorites = new Set(state.favorites || []);
+        }
       }
     }
   )
@@ -136,7 +135,7 @@ export const useUserProfile = () =>
 export const useUpdateProfile = () =>
   useMutation({
     mutationFn: userAPI.updateProfile,
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Обновляем кеш
       // queryClient.setQueryData(['user', 'profile'], data);
       
@@ -188,7 +187,7 @@ export const useFavorites = () => {
 export const useTelegramSync = () => {
   const { setTelegramUser } = useUserStore();
   
-  React.useEffect(() => {
+  useEffect(() => {
     const tg = window.Telegram?.WebApp;
     
     if (tg?.initDataUnsafe?.user) {
