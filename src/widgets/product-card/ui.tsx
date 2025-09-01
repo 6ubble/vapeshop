@@ -22,14 +22,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   if (variant === 'grid') {
     return (
-      <Card onClick={onClick} className="relative overflow-hidden">
+      <Card className="relative overflow-hidden">
         {discount > 0 && (
           <div className="absolute top-2 left-2 z-10">
             <Badge variant="error">-{discount}%</Badge>
           </div>
         )}
 
-        <div className="aspect-square bg-gray-50 rounded-lg mb-3 overflow-hidden">
+        <div 
+          className="aspect-square bg-gray-50 rounded-lg mb-3 overflow-hidden cursor-pointer"
+          onClick={onClick}
+        >
           <img
             src={product.image}
             alt={product.name}
@@ -43,7 +46,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {product.brand}
           </div>
           
-          <h3 className="font-medium text-tg-text line-clamp-2 leading-tight">
+          <h3 
+            className="font-medium text-tg-text line-clamp-2 leading-tight cursor-pointer"
+            onClick={onClick}
+          >
             {product.name}
           </h3>
           
@@ -79,8 +85,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   }
 
   return (
-    <Card onClick={onClick} className="flex gap-4 relative">
-      <div className="w-20 h-20 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0">
+    <Card className="flex gap-4 relative">
+      <div 
+        className="w-20 h-20 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
+        onClick={onClick}
+      >
         <img
           src={product.image}
           alt={product.name}
@@ -95,7 +104,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {product.brand}
           </div>
           
-          <h3 className="font-medium text-tg-text line-clamp-2 mb-2">
+          <h3 
+            className="font-medium text-tg-text line-clamp-2 mb-2 cursor-pointer"
+            onClick={onClick}
+          >
             {product.name}
           </h3>
           
