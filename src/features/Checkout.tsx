@@ -1,20 +1,20 @@
+// src/features/SimpleCheckout.tsx
 import React, { useState } from 'react';
-import { MapPin, Phone, User, CreditCard } from 'lucide-react';
+import { MapPin, Phone, User, Banknote } from 'lucide-react';
 import { Button, Input, Card } from '../shared/Ui';
-import { useCart, useCreateOrder } from '../entities/cart';
+import { useCart } from '../entities/cart';
 import { useTelegram } from '../shared/Telegram';
-import { formatPrice } from '../shared/api';
+import { formatPrice } from '../shared/utils';
 
 interface CheckoutFormProps {
   onSuccess?: () => void;
 }
 
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess }) => {
-  const { items, total } = useCart();
-  const { mutate: createOrder, isPending } = useCreateOrder();
-  const { user, showAlert, haptic } = useTelegram();
+  const { items, total, clear } = useCart();
+  const { user, haptic, showAlert } = useTelegram();
   
-  const [customerInfo, setCustomerInfo] = useState({
+  const [formData, setFormData] = useState({
     name: user?.first_name || '',
     phone: '',
     deliveryType: 'pickup' as 'pickup' | 'delivery',
@@ -23,119 +23,112 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess }) => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Валидация формы
+  // Простая валидация
   const validate = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!customerInfo.name.trim()) {
-      newErrors.name = 'Введите имя';
-    }
-    
-    if (!customerInfo.phone.trim()) {
-      newErrors.phone = 'Введите номер телефона';
-    } else if (!/^(\+7|8)\s?\(?\d{3}\)?\s?\d{3}[-\s]?\d{2}[-\s]?\d{2}$/.test(customerInfo.phone.replace(/\D/g, ''))) {
-      newErrors.phone = 'Неверный формат телефона';
-    }
-    
-    if (customerInfo.deliveryType === 'delivery' && !customerInfo.address.trim()) {
-      newErrors.address = 'Введите адрес доставки';
+    if (!formData.name.trim()) newErrors.name = 'Введите имя';
+    if (!formData.phone.trim()) newErrors.phone = 'Введите телефон';
+    if (formData.deliveryType === 'delivery' && !formData.address.trim()) {
+      newErrors.address = 'Введите адрес';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Форматирование телефона
-  const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    const match = digits.match(/^(\d{1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
-    
-    if (match) {
-      let formatted = '';
-      if (match[1]) formatted += `+7`;
-      if (match[2]) formatted += ` (${match[2]}`;
-      if (match[3]) formatted += `) ${match[3]}`;
-      if (match[4]) formatted += `-${match[4]}`;
-      if (match[5]) formatted += `-${match[5]}`;
-      return formatted;
-    }
-    
-    return value;
-  };
-
   const handleSubmit = async () => {
-    if (!validate()) {
+    if (!validate() || items.length === 0) {
       haptic.error();
       return;
     }
-    
-    if (items.length === 0) {
-      await showAlert('Корзина пуста');
-      return;
-    }
 
+    setIsSubmitting(true);
     haptic.medium();
 
     try {
-      await createOrder({
-        items,
-        customerInfo: {
-          ...customerInfo,
-          userId: user?.id,
-          total: finalTotal,
-          metadata: {
-            platform: 'telegram',
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString()
-          }
-        }
-      });
-      
-      haptic.success();
-      await showAlert('✅ Заказ успешно оформлен!\n\nМы свяжемся с вами в течение 15 минут для подтверждения.');
-      
+      // Формируем данные заказа
+      const orderData = {
+        type: 'new_order',
+        timestamp: new Date().toISOString(),
+        customer: {
+          name: formData.name,
+          phone: formData.phone,
+          telegramId: user?.id,
+          username: user?.username
+        },
+        items: items.map(item => ({
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          total: item.product.price * item.quantity
+        })),
+        delivery: {
+          type: formData.deliveryType,
+          address: formData.deliveryType === 'delivery' ? formData.address : 'Самовывоз',
+          comment: formData.comment
+        },
+        totals: {
+          items: total,
+          delivery: formData.deliveryType === 'delivery' ? 300 : 0,
+          final: total + (formData.deliveryType === 'delivery' ? 300 : 0)
+        },
+        paymentMethod: 'cash'
+      };
+
+      // Отправляем в Telegram бот
+      const tg = window.Telegram?.WebApp;
+      if (tg?.sendData) {
+        tg.sendData(JSON.stringify(orderData));
+      }
+
+      // Показываем успех
+      await showAlert(
+        `✅ Заказ успешно отправлен!\n\n` +
+        `Наш менеджер свяжется с вами в течение 15 минут для подтверждения.\n\n` +
+        `📞 ${formData.phone}\n` +
+        `💰 Оплата: ${formatPrice(orderData.totals.final)} наличными`
+      );
+
+      // Очищаем корзину и форму
+      clear();
       onSuccess?.();
       
     } catch (error) {
+      await showAlert('❌ Ошибка отправки заказа. Попробуйте еще раз.');
       haptic.error();
-      await showAlert('❌ Ошибка при оформлении заказа.\n\nПроверьте подключение к интернету и попробуйте еще раз.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Расчет стоимости доставки
-  const deliveryFee = customerInfo.deliveryType === 'delivery' ? 300 : 0;
+  const deliveryFee = formData.deliveryType === 'delivery' ? 300 : 0;
   const finalTotal = total + deliveryFee;
-
-  // Минимальная сумма заказа
-  const minOrderAmount = 1000;
-  const isMinOrderMet = total >= minOrderAmount;
 
   return (
     <div className="space-y-4">
-      {/* Контактная информация */}
+      {/* Контакты */}
       <Card>
         <h3 className="font-semibold mb-3 flex items-center gap-2">
           <User size={18} />
-          Контактные данные
+          Ваши контакты
         </h3>
         
         <div className="space-y-3">
           <Input
-            value={customerInfo.name}
-            onChange={(value) => setCustomerInfo(prev => ({ ...prev, name: value }))}
+            value={formData.name}
+            onChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
             placeholder="Ваше имя"
             error={errors.name}
             icon={<User size={16} />}
           />
           
           <Input
-            value={customerInfo.phone}
-            onChange={(value) => {
-              const formatted = formatPhone(value);
-              setCustomerInfo(prev => ({ ...prev, phone: formatted }));
-            }}
-            placeholder="+7 (999) 999-99-99"
+            value={formData.phone}
+            onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
+            placeholder="+7 (999) 123-45-67"
             error={errors.phone}
             icon={<Phone size={16} />}
             type="tel"
@@ -143,62 +136,47 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess }) => {
         </div>
       </Card>
 
-      {/* Способ получения */}
+      {/* Получение */}
       <Card>
         <h3 className="font-semibold mb-3 flex items-center gap-2">
           <MapPin size={18} />
-          Способ получения
+          Как получить заказ?
         </h3>
         
         <div className="space-y-3">
-          {/* Самовывоз */}
-          <label className="flex items-start gap-3 p-3 bg-tg-secondary-bg rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+          <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
             <input
               type="radio"
               name="delivery"
-              checked={customerInfo.deliveryType === 'pickup'}
-              onChange={() => setCustomerInfo(prev => ({ ...prev, deliveryType: 'pickup' }))}
-              className="mt-1"
+              checked={formData.deliveryType === 'pickup'}
+              onChange={() => setFormData(prev => ({ ...prev, deliveryType: 'pickup' }))}
             />
             <div className="flex-1">
-              <div className="font-medium">🏪 Самовывоз</div>
-              <div className="text-sm text-tg-hint">
-                ул. Примерная, 123 • Бесплатно
-              </div>
-              <div className="text-xs text-green-600 mt-1">
-                Готов через 30 минут
-              </div>
+              <div className="font-medium">🏪 Самовывоз • Бесплатно</div>
+              <div className="text-sm text-tg-hint">ул. Примерная, 123 • готов через 30 мин</div>
             </div>
           </label>
           
-          {/* Доставка */}
-          <label className="flex items-start gap-3 p-3 bg-tg-secondary-bg rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+          <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
             <input
               type="radio"
               name="delivery"
-              checked={customerInfo.deliveryType === 'delivery'}
-              onChange={() => setCustomerInfo(prev => ({ ...prev, deliveryType: 'delivery' }))}
-              className="mt-1"
+              checked={formData.deliveryType === 'delivery'}
+              onChange={() => setFormData(prev => ({ ...prev, deliveryType: 'delivery' }))}
             />
             <div className="flex-1">
-              <div className="font-medium">🚗 Доставка курьером</div>
-              <div className="text-sm text-tg-hint">
-                По городу • {formatPrice(deliveryFee)}
-              </div>
-              <div className="text-xs text-blue-600 mt-1">
-                1-2 часа
-              </div>
+              <div className="font-medium">🚗 Доставка • {formatPrice(300)}</div>
+              <div className="text-sm text-tg-hint">по городу • 1-2 часа</div>
             </div>
           </label>
         </div>
         
-        {/* Адрес доставки */}
-        {customerInfo.deliveryType === 'delivery' && (
+        {formData.deliveryType === 'delivery' && (
           <div className="mt-3">
             <Input
-              value={customerInfo.address}
-              onChange={(value) => setCustomerInfo(prev => ({ ...prev, address: value }))}
-              placeholder="Введите адрес доставки"
+              value={formData.address}
+              onChange={(value) => setFormData(prev => ({ ...prev, address: value }))}
+              placeholder="Улица, дом, квартира"
               error={errors.address}
               icon={<MapPin size={16} />}
             />
@@ -206,104 +184,66 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess }) => {
         )}
       </Card>
 
-      {/* Комментарий к заказу */}
+      {/* Комментарий */}
       <Card>
-        <h3 className="font-semibold mb-3">💬 Комментарий к заказу</h3>
+        <h3 className="font-semibold mb-3">💬 Комментарий</h3>
         <textarea
-          value={customerInfo.comment}
-          onChange={(e) => setCustomerInfo(prev => ({ ...prev, comment: e.target.value }))}
-          placeholder="Дополнительные пожелания (необязательно)"
+          value={formData.comment}
+          onChange={(e) => setFormData(prev => ({ ...prev, comment: e.target.value }))}
+          placeholder="Этаж, домофон, пожелания..."
           rows={3}
-          className="w-full px-3 py-2 bg-tg-secondary-bg rounded-lg text-tg-text placeholder-tg-hint resize-none"
+          className="w-full px-3 py-2 bg-tg-secondary-bg rounded-lg resize-none"
         />
       </Card>
 
-      {/* Детализация заказа */}
+      {/* Оплата */}
+      <Card className="bg-green-50 border-green-200">
+        <div className="flex items-center gap-3">
+          <Banknote size={24} className="text-green-600" />
+          <div>
+            <div className="font-semibold text-green-800">Оплата наличными</div>
+            <div className="text-sm text-green-600">При получении • без комиссий</div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Итого */}
       <Card>
-        <h3 className="font-semibold mb-3 flex items-center gap-2">
-          <CreditCard size={18} />
-          Детали заказа
-        </h3>
-        
-        <div className="space-y-2 text-sm">
+        <div className="space-y-2">
           <div className="flex justify-between">
-            <span>Товары ({items.length}):</span>
-            <span className="font-medium">{formatPrice(total)}</span>
+            <span>Товары:</span>
+            <span>{formatPrice(total)}</span>
           </div>
           
           {deliveryFee > 0 && (
             <div className="flex justify-between">
               <span>Доставка:</span>
-              <span className="font-medium">{formatPrice(deliveryFee)}</span>
+              <span>{formatPrice(deliveryFee)}</span>
             </div>
           )}
           
-          {!isMinOrderMet && (
-            <div className="flex justify-between text-orange-600">
-              <span>До минимальной суммы:</span>
-              <span className="font-medium">
-                {formatPrice(minOrderAmount - total)}
-              </span>
-            </div>
-          )}
+          <hr className="my-2" />
           
-          <div className="border-t border-gray-200 pt-2 mt-3">
-            <div className="flex justify-between text-lg font-bold">
-              <span>К оплате:</span>
-              <span className="text-tg-button">{formatPrice(finalTotal)}</span>
-            </div>
+          <div className="flex justify-between text-lg font-bold">
+            <span>К оплате наличными:</span>
+            <span className="text-tg-button">{formatPrice(finalTotal)}</span>
           </div>
         </div>
       </Card>
 
-      {/* Способ оплаты */}
-      <Card className="bg-blue-50 border-blue-200">
-        <div className="flex items-center gap-3">
-          <CreditCard size={20} className="text-blue-500" />
-          <div className="text-sm">
-            <div className="font-medium text-blue-800">Оплата при получении</div>
-            <div className="text-blue-600">Наличными или картой</div>
-          </div>
-        </div>
-      </Card>
+      {/* Кнопка заказа */}
+      <Button
+        onClick={handleSubmit}
+        disabled={isSubmitting || items.length === 0}
+        loading={isSubmitting}
+        fullWidth
+        size="lg"
+      >
+        {isSubmitting ? 'Отправляем...' : `Заказать за ${formatPrice(finalTotal)}`}
+      </Button>
 
-      {/* Предупреждение о минимальной сумме */}
-      {!isMinOrderMet && (
-        <Card className="bg-orange-50 border-orange-200">
-          <div className="flex items-center gap-3">
-            <div className="text-orange-500">⚠️</div>
-            <div className="text-sm">
-              <div className="font-medium text-orange-800">
-                Минимальная сумма заказа {formatPrice(minOrderAmount)}
-              </div>
-              <div className="text-orange-600">
-                Добавьте товаров еще на {formatPrice(minOrderAmount - total)}
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Кнопка оформления */}
-      <div className="space-y-3">
-        <Button
-          onClick={handleSubmit}
-          disabled={isPending || items.length === 0 || !isMinOrderMet}
-          loading={isPending}
-          fullWidth
-          size="lg"
-          className={isPending ? 'opacity-50' : ''}
-        >
-          {isPending 
-            ? 'Оформляем заказ...' 
-            : `Оформить заказ • ${formatPrice(finalTotal)}`
-          }
-        </Button>
-
-        {/* Дополнительная информация */}
-        <div className="text-center text-xs text-tg-hint">
-          Нажимая кнопку, вы соглашаетесь с условиями обработки персональных данных
-        </div>
+      <div className="text-center text-xs text-tg-hint">
+        Менеджер перезвонит для подтверждения заказа
       </div>
     </div>
   );
