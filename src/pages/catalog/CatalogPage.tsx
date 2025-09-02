@@ -16,7 +16,6 @@ export const CatalogPage: React.FC = () => {
   const { data: products = [], isLoading } = useProducts()
   const { selectedCategory, searchQuery, sortBy } = useFiltersStore()
 
-  // Мемоизируем фильтрацию и сортировку
   const displayProducts = useMemo(() => {
     const filtered = filterProducts(products, selectedCategory, searchQuery)
     return sortProducts(filtered, sortBy)
@@ -27,16 +26,14 @@ export const CatalogPage: React.FC = () => {
     navigate(`/product/${productId}`)
   }
 
-  const isSearching = searchQuery.length > 0
-
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-12 bg-gray-100 rounded-lg animate-pulse" />
-        <div className="h-8 bg-gray-100 rounded-lg animate-pulse" />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="h-12 bg-gray-100 rounded-lg" />
+        <div className="h-8 bg-gray-100 rounded-lg" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="bg-gray-100 rounded-xl aspect-square animate-pulse" />
+            <div key={i} className="bg-gray-100 rounded-xl aspect-square" />
           ))}
         </div>
       </div>
@@ -47,28 +44,27 @@ export const CatalogPage: React.FC = () => {
     <div className="space-y-4">
       <ProductSearch placeholder="Поиск товаров..." />
 
-      {!isSearching && <ProductFilters />}
+      {!searchQuery && <ProductFilters />}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {displayProducts.map(product => (
           <ProductCard
             key={product.id}
             product={product}
             onClick={() => handleProductClick(product.id)}
-            variant="grid"
           />
         ))}
       </div>
 
       {displayProducts.length === 0 && (
         <EmptyState 
-          title={isSearching ? "Ничего не найдено" : "Товары скоро появятся"}
-          description={isSearching 
+          title={searchQuery ? "Ничего не найдено" : "Товары скоро появятся"}
+          description={searchQuery 
             ? "Попробуйте изменить поисковый запрос" 
             : "Следите за обновлениями каталога"
           }
-          icon={<div className="text-4xl">{isSearching ? '🔍' : '📦'}</div>}
-          action={isSearching ? {
+          icon={<div className="text-4xl">{searchQuery ? '🔍' : '📦'}</div>}
+          action={searchQuery ? {
             label: 'Очистить поиск',
             onClick: () => useFiltersStore.getState().setSearch('')
           } : undefined}

@@ -12,26 +12,25 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation()
   const { isReady } = useTelegram()
   
-  // Скрываем навигацию на странице товара
   const hideNavigation = location.pathname.startsWith('/product')
   
   if (!isReady) {
     return (
-      <div className="min-h-screen bg-tg-bg flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="text-tg-hint mt-4">Загрузка...</p>
+          <p className="text-gray-500 mt-4">Загрузка...</p>
         </div>
       </div>
     )
   }
   
   return (
-    <div className="min-h-screen bg-tg-bg">
+    <div className="min-h-screen bg-gray-50">
       <main className={`
         px-4 py-6 
         ${hideNavigation ? 'pb-6' : 'pb-20'}
-        max-w-md mx-auto
+        max-w-7xl mx-auto
       `}>
         {children}
       </main>

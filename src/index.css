@@ -1,13 +1,18 @@
 @import "tailwindcss";
 
-/* Telegram WebApp CSS переменные */
+/* Telegram WebApp CSS переменные (монохром) */
 :root {
-  --tg-bg: var(--tg-bg-color, #ff0000);
-  --tg-text: var(--tg-text-color, #000000);
-  --tg-hint: var(--tg-hint-color, #999999);
-  --tg-button: var(--tg-button-color, #2481cc);
+  /* Фон приложения (по умолчанию белый) */
+  --tg-bg: var(--tg-bg-color, #ffffff);
+  /* Основной цвет текста (глубокий тёмно-серый) */
+  --tg-text: var(--tg-text-color, #111111);
+  /* Подсказки/вторичный текст */
+  --tg-hint: var(--tg-hint-color, #6b7280);
+  /* Кнопки и акценты (чёрный) */
+  --tg-button: var(--tg-button-color, #111111);
   --tg-button-text: var(--tg-button-text-color, #ffffff);
-  --tg-secondary-bg: var(--tg-secondary-bg-color, #f4f4f5);
+  /* Вторичный фон блоков */
+  --tg-secondary-bg: var(--tg-secondary-bg-color, #f3f4f6);
 }
 
 /* Скрытие скроллбара */
@@ -39,3 +44,26 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Полное отключение анимаций и переходов для мобильного mini app */
+* {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Базовая типографика и контейнеры */
+.container {
+  max-width: 672px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+h1, .h1 { font-size: 22px; font-weight: 700; color: var(--tg-text); }
+h2, .h2 { font-size: 18px; font-weight: 600; color: var(--tg-text); }
+h3, .h3 { font-size: 16px; font-weight: 600; color: var(--tg-text); }
+p { color: var(--tg-text); }
+
+/* Сплошные границы вместо теней */
+.card-border { border: 1px solid #e5e7eb; border-radius: 12px; }

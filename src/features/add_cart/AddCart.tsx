@@ -19,7 +19,6 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
   const cartItem = items.find(item => item.product.id === product.id)
   const quantity = cartItem?.quantity || 0
   
-  // Compact версия для карточек
   if (variant === 'compact') {
     if (quantity === 0) {
       return (
@@ -28,8 +27,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
             e.stopPropagation()
             addItem(product)
           }}
-          disabled={!product.inStock}
-          className="p-2 bg-tg-button text-tg-button-text rounded-full hover:opacity-90 disabled:opacity-50 transition-all active:scale-95"
+          className="p-2 bg-black text-white rounded-full"
         >
           <ShoppingCart size={16} />
         </button>
@@ -39,10 +37,8 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     return (
       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
         <button
-          onClick={() => {
-            quantity === 1 ? removeItem(product.id) : updateQuantity(product.id, quantity - 1)
-          }}
-          className="w-8 h-8 bg-tg-secondary-bg text-tg-text rounded-full flex items-center justify-center hover:opacity-80 transition-all active:scale-95"
+          onClick={() => quantity === 1 ? removeItem(product.id) : updateQuantity(product.id, quantity - 1)}
+          className="w-8 h-8 bg-gray-200 text-gray-800 rounded-full flex items-center justify-center"
         >
           <Minus size={14} />
         </button>
@@ -53,7 +49,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
         
         <button
           onClick={() => updateQuantity(product.id, quantity + 1)}
-          className="w-8 h-8 bg-tg-button text-tg-button-text rounded-full flex items-center justify-center hover:opacity-90 transition-all active:scale-95"
+          className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"
         >
           <Plus size={14} />
         </button>
@@ -61,46 +57,44 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     )
   }
   
-  // Default версия для страницы товара
   if (quantity === 0) {
     return (
       <Button
         onClick={() => addItem(product)}
-        disabled={!product.inStock}
         fullWidth
         size="lg"
       >
         <ShoppingCart size={20} className="mr-2" />
-        {product.inStock ? `Добавить • ${formatPrice(product.price)}` : 'Нет в наличии'}
+        Добавить • {formatPrice(product.price)}
       </Button>
     )
   }
   
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-center gap-4 bg-tg-secondary-bg rounded-lg p-3">
+      <div className="flex items-center justify-center gap-4 bg-gray-100 rounded-lg p-3">
         <button
           onClick={() => quantity === 1 ? removeItem(product.id) : updateQuantity(product.id, quantity - 1)}
-          className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all active:scale-95"
+          className="w-12 h-12 bg-white rounded-full flex items-center justify-center"
         >
           <Minus size={20} />
         </button>
         
         <div className="text-center">
           <div className="text-2xl font-bold">{quantity}</div>
-          <div className="text-sm text-tg-hint">в корзине</div>
+          <div className="text-sm text-gray-500">в корзине</div>
         </div>
         
         <button
           onClick={() => updateQuantity(product.id, quantity + 1)}
-          className="w-12 h-12 bg-tg-button text-tg-button-text rounded-full flex items-center justify-center hover:opacity-90 transition-all active:scale-95"
+          className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center"
         >
           <Plus size={20} />
         </button>
       </div>
       
       <div className="text-center">
-        <div className="text-lg font-bold text-tg-text">
+        <div className="text-lg font-bold text-gray-900">
           Итого: {formatPrice(product.price * quantity)}
         </div>
       </div>

@@ -1,12 +1,10 @@
-import React, { useEffect, useMemo, useCallback } from 'react'
+import React, { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Star, Share } from 'lucide-react'
-import { Button, Card, Badge, LoadingSpinner } from '../../shared/ui'
+import { ArrowLeft, Share } from 'lucide-react'
+import { Button, Card, LoadingSpinner } from '../../shared/ui'
 import { AddToCartButton } from '../../features/add_cart/AddCart'
-import { ProductCard } from '../../widgets/ProductCard'
-import { useProduct, useProducts } from '../../shared/api'
+import { useProduct } from '../../shared/api'
 import { useTelegram } from '../../shared/lib/Telegram'
-import { formatPrice, getDiscount } from '../../shared/lib/utils'
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -14,32 +12,12 @@ export const ProductPage: React.FC = () => {
   const { haptic, showBackButton, hideBackButton } = useTelegram()
   
   const { data: product, isLoading, error } = useProduct(id!)
-  const { data: allProducts = [] } = useProducts()
-
-  // Мемоизируем похожие товары
-  const relatedProducts = useMemo(() => {
-    if (!product) return []
-    return allProducts
-      .filter(p => p.id !== id && p.category === product.category)
-      .slice(0, 4)
-  }, [allProducts, product, id])
-
-  const discount = useMemo(() => 
-    product ? getDiscount(product.price, product.originalPrice) : 0, 
-    [product]
-  )
-
-  const handleRelatedProductClick = useCallback((productId: string) => {
-    haptic.light()
-    navigate(`/product/${productId}`)
-  }, [haptic, navigate])
 
   useEffect(() => {
     showBackButton(() => {
       haptic.medium()
       navigate(-1)
     })
-
     return () => hideBackButton()
   }, [showBackButton, hideBackButton, haptic, navigate])
 
@@ -48,7 +26,7 @@ export const ProductPage: React.FC = () => {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="text-tg-hint mt-4">Загружаем товар...</p>
+          <p className="text-gray-500 mt-4">Загружаем товар...</p>
         </div>
       </div>
     )
@@ -59,7 +37,7 @@ export const ProductPage: React.FC = () => {
       <div className="text-center py-20">
         <div className="text-4xl mb-4">😕</div>
         <h2 className="text-xl font-bold mb-2">Товар не найден</h2>
-        <p className="text-tg-hint mb-6">Возможно, товар был удален</p>
+        <p className="text-gray-500 mb-6">Возможно, товар был удален</p>
         <Button onClick={() => navigate('/catalog')}>
           Перейти в каталог
         </Button>
@@ -68,8 +46,7 @@ export const ProductPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Шапка */}
+    <div className="space-y-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"
@@ -92,8 +69,7 @@ export const ProductPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Изображение товара */}
-      <div className="aspect-square rounded-xl overflow-hidden bg-white shadow-lg">
+      <div className="aspect-square rounded-xl overflow-hidden bg-white shadow-lg max-w-lg mx-auto">
         <img
           src={product.image}
           alt={product.name}
@@ -101,84 +77,18 @@ export const ProductPage: React.FC = () => {
         />
       </div>
 
-      {/* Информация о товаре */}
       <Card>
-        <div className="space-y-4">
-          <div className="flex justify-between items-start">
-            <div className="flex-1 pr-4">
-              <div className="text-sm text-tg-hint uppercase mb-1">
-                {product.brand}
-              </div>
-              <h1 className="text-xl font-bold text-tg-text leading-tight">
-                {product.name}
-              </h1>
-            </div>
-            
-            <div className="text-right">
-              <div className="text-2xl font-bold text-tg-button">
-                {formatPrice(product.price)}
-              </div>
-              {product.originalPrice && (
-                <div className="text-sm text-tg-hint line-through">
-                  {formatPrice(product.originalPrice)}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <Star size={16} className="text-yellow-400 fill-current" />
-              <span className="font-medium">{product.rating}</span>
-            </div>
-            <span className="text-tg-hint text-sm">превосходное качество</span>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {product.isNew && <Badge variant="info">Новинка</Badge>}
-            {product.isPopular && <Badge variant="warning">Хит продаж</Badge>}
-            {discount > 0 && <Badge variant="error">Скидка -{discount}%</Badge>}
-            {product.inStock ? (
-              <Badge variant="success">✓ В наличии</Badge>
-            ) : (
-              <Badge variant="error">Нет в наличии</Badge>
-            )}
-          </div>
+        <div className="text-center">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight mb-2">
+            {product.name}
+          </h1>
+          <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+            {product.description}
+          </p>
         </div>
       </Card>
 
-      {/* Кнопка добавления в корзину */}
       <AddToCartButton product={product} />
-
-      {/* Описание */}
-      <Card>
-        <h3 className="font-semibold mb-3">Описание товара</h3>
-        <div className="prose prose-sm max-w-none text-tg-text">
-          {product.description.split('\n').map((paragraph, index) => (
-            <p key={index} className="mb-3 last:mb-0">
-              {paragraph}
-            </p>
-          ))}
-        </div>
-      </Card>
-
-      {/* Похожие товары */}
-      {relatedProducts.length > 0 && (
-        <div>
-          <h3 className="font-semibold mb-3 text-lg">Похожие товары</h3>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {relatedProducts.map(relatedProduct => (
-              <ProductCard
-                key={relatedProduct.id}
-                product={relatedProduct}
-                onClick={() => handleRelatedProductClick(relatedProduct.id)}
-                variant="grid"
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

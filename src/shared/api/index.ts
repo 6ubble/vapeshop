@@ -35,10 +35,9 @@ api.interceptors.response.use(
     
     if (error.response?.status === 401) {
       tg?.showAlert?.('Ошибка авторизации')
-    } else if (error.response?.status >= 500) {
-      tg?.showAlert?.('Ошибка сервера. Попробуйте позже.')
-      tg?.HapticFeedback?.notificationOccurred?.('error')
-    }
+      } else if (error.response?.status >= 500) {
+    tg?.showAlert?.('Ошибка сервера. Попробуйте позже.')
+  }
     
     return Promise.reject(error)
   }
@@ -50,7 +49,6 @@ const MOCK_PRODUCTS: Product[] = [
     id: '1',
     name: 'JUUL Device Starter Kit',
     price: 2990,
-    originalPrice: 3490,
     image: 'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=400',
     brand: 'JUUL',
     category: 'pods',
@@ -77,7 +75,6 @@ const MOCK_PRODUCTS: Product[] = [
     id: '3',
     name: 'Nasty Juice Grape Berry 60ml',
     price: 890,
-    originalPrice: 1190,
     image: 'https://images.unsplash.com/photo-1557821552-17105176677c?w=400',
     brand: 'Nasty Juice',
     category: 'liquids',
@@ -148,21 +145,6 @@ const productsAPI = {
       if (!product) throw new Error('Product not found')
       return product
     }
-  },
-  
-  search: async (query: string): Promise<Product[]> => {
-    try {
-      const { data } = await api.get('/products/search', {
-        params: { q: query, limit: 20 }
-      })
-      return data
-    } catch {
-      const lowerQuery = query.toLowerCase()
-      return MOCK_PRODUCTS.filter(p => 
-        p.name.toLowerCase().includes(lowerQuery) ||
-        p.brand.toLowerCase().includes(lowerQuery)
-      )
-    }
   }
 }
 
@@ -196,14 +178,7 @@ export const useProduct = (id: string) => {
   })
 }
 
-export const useProductSearch = (query: string) => {
-  return useQuery({
-    queryKey: ['products', 'search', query],
-    queryFn: () => productsAPI.search(query),
-    enabled: query.length > 2,
-    staleTime: 2 * 60 * 1000
-  })
-}
+
 
 export const useCreateOrder = () => {
   const queryClient = useQueryClient()
@@ -215,7 +190,6 @@ export const useCreateOrder = () => {
       clearCart()
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       
-      // Отправляем данные боту
       window.Telegram?.WebApp?.sendData?.(JSON.stringify({
         type: 'order_created',
         orderId: data.id

@@ -20,24 +20,16 @@ export const CheckoutForm: React.FC = () => {
     comment: ''
   })
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-    
-    if (!formData.name.trim()) newErrors.name = 'Введите имя'
-    if (!formData.phone.trim()) newErrors.phone = 'Введите телефон'
-    if (formData.deliveryType === 'delivery' && !formData.address.trim()) {
-      newErrors.address = 'Введите адрес'
-    }
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
   const handleSubmit = async () => {
-    if (!validate() || items.length === 0) {
+    if (!formData.name.trim() || !formData.phone.trim()) {
       haptic.error()
+      await showAlert('Заполните имя и телефон')
+      return
+    }
+
+    if (formData.deliveryType === 'delivery' && !formData.address.trim()) {
+      haptic.error()
+      await showAlert('Введите адрес доставки')
       return
     }
 
@@ -68,10 +60,7 @@ export const CheckoutForm: React.FC = () => {
       }
 
       await createOrderMutation.mutateAsync(orderData)
-      
-      await showAlert(
-        `✅ Заказ успешно отправлен!\n\nНаш менеджер свяжется с вами в течение 15 минут.`
-      )
+      await showAlert('✅ Заказ отправлен! Менеджер свяжется с вами в течение 15 минут.')
       
     } catch (error) {
       await showAlert('❌ Ошибка отправки заказа. Попробуйте еще раз.')
@@ -91,7 +80,6 @@ export const CheckoutForm: React.FC = () => {
             value={formData.name}
             onChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
             placeholder="Ваше имя"
-            error={errors.name}
             icon={<User size={16} />}
           />
           
@@ -99,7 +87,6 @@ export const CheckoutForm: React.FC = () => {
             value={formData.phone}
             onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
             placeholder="+7 (999) 123-45-67"
-            error={errors.phone}
             icon={<Phone size={16} />}
             type="tel"
           />
@@ -118,7 +105,7 @@ export const CheckoutForm: React.FC = () => {
             />
             <div>
               <div className="font-medium">Самовывоз • Бесплатно</div>
-              <div className="text-sm text-tg-hint">готов через 30 мин</div>
+              <div className="text-sm text-gray-500">готов через 30 мин</div>
             </div>
           </label>
           
@@ -131,7 +118,7 @@ export const CheckoutForm: React.FC = () => {
             />
             <div>
               <div className="font-medium">Доставка • {formatPrice(300)}</div>
-              <div className="text-sm text-tg-hint">1-2 часа</div>
+              <div className="text-sm text-gray-500">1-2 часа</div>
             </div>
           </label>
         </div>
@@ -142,7 +129,6 @@ export const CheckoutForm: React.FC = () => {
               value={formData.address}
               onChange={(value) => setFormData(prev => ({ ...prev, address: value }))}
               placeholder="Адрес доставки"
-              error={errors.address}
               icon={<MapPin size={16} />}
             />
           </div>
@@ -174,7 +160,7 @@ export const CheckoutForm: React.FC = () => {
 
       <Button
         onClick={handleSubmit}
-        disabled={createOrderMutation.isPending || items.length === 0}
+        disabled={createOrderMutation.isPending}
         loading={createOrderMutation.isPending}
         fullWidth
         size="lg"

@@ -11,7 +11,6 @@ interface CartStore {
   clearCart: () => void
   getTotal: () => number
   getCount: () => number
-  hasItem: (productId: string) => boolean
 }
 
 export const useCartStore = create<CartStore>()(
@@ -27,13 +26,7 @@ export const useCartStore = create<CartStore>()(
         return get().items.reduce((sum, item) => sum + item.quantity, 0)
       },
       
-      hasItem: (productId) => {
-        return get().items.some(item => item.product.id === productId)
-      },
-      
       addItem: (product) => {
-        window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('light')
-        
         set(state => {
           const existing = state.items.find(item => item.product.id === product.id)
           
@@ -52,7 +45,6 @@ export const useCartStore = create<CartStore>()(
       },
       
       removeItem: (productId) => {
-        window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('medium')
         set(state => ({
           items: state.items.filter(item => item.product.id !== productId)
         }))
@@ -72,7 +64,6 @@ export const useCartStore = create<CartStore>()(
       },
       
       clearCart: () => {
-        window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred('success')
         set({ items: [] })
       }
     }),

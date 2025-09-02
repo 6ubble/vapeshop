@@ -24,16 +24,18 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center font-medium rounded-lg transition-all active:scale-95',
+        // Кнопка без анимаций и масштабирования
+        'inline-flex items-center justify-center font-medium rounded-lg',
         // Variants
-        variant === 'primary' && 'bg-tg-button text-tg-button-text hover:opacity-90',
-        variant === 'secondary' && 'bg-tg-secondary-bg text-tg-text hover:bg-gray-200',
-        variant === 'ghost' && 'text-tg-button hover:bg-tg-secondary-bg',
-        variant === 'danger' && 'bg-red-500 text-white hover:bg-red-600',
+        variant === 'primary' && 'bg-tg-button text-tg-button-text',
+        variant === 'secondary' && 'bg-tg-secondary-bg text-tg-text',
+        variant === 'ghost' && 'text-tg-text',
+        // Монохромный вариант danger
+        variant === 'danger' && 'bg-[#111111] text-white opacity-80',
         // Sizes
         size === 'sm' && 'px-3 py-1.5 text-sm',
-        size === 'md' && 'px-4 py-2.5',
-        size === 'lg' && 'px-6 py-3 text-lg',
+        size === 'md' && 'px-3.5 py-2',
+        size === 'lg' && 'px-5 py-2.5 text-base',
         // States
         fullWidth && 'w-full',
         (disabled || loading) && 'opacity-50 cursor-not-allowed',
@@ -43,7 +45,8 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {loading && (
-        <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />
+        // Статичный индикатор загрузки без анимации
+        <span className="h-3 w-3 rounded-full bg-current opacity-40 mr-2" />
       )}
       {children}
     </button>
@@ -63,8 +66,9 @@ export const Card: React.FC<CardProps> = ({ children, className, onClick }) => {
   return (
     <Component
       className={cn(
-        'bg-white rounded-xl border border-gray-100 shadow-sm p-4',
-        onClick && 'hover:shadow-md active:scale-[0.99] transition-all cursor-pointer text-left',
+        // Карточка без теней и анимаций
+        'bg-white rounded-lg border border-gray-200 p-3.5',
+        onClick && 'cursor-pointer text-left',
         className
       )}
       onClick={onClick}
@@ -108,7 +112,7 @@ export const Input: React.FC<InputProps> = ({
         <input
           className={cn(
             'w-full px-3 py-2.5 bg-tg-secondary-bg rounded-lg text-tg-text placeholder-tg-hint',
-            'focus:outline-none focus:ring-2 focus:ring-tg-button transition-all',
+            'focus:outline-none focus:ring-2 focus:ring-tg-button',
             icon ? 'pl-10' : 'pl-3',
             error && 'border border-red-500',
             className
@@ -133,11 +137,12 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'default' }) =
   return (
     <span className={cn(
       'inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full',
+      // Монохромные варианты бейджей
       variant === 'default' && 'bg-gray-100 text-gray-800',
-      variant === 'success' && 'bg-green-100 text-green-800',
-      variant === 'warning' && 'bg-orange-100 text-orange-800',
-      variant === 'error' && 'bg-red-100 text-red-800',
-      variant === 'info' && 'bg-blue-100 text-blue-800'
+      variant === 'success' && 'bg-gray-200 text-gray-900',
+      variant === 'warning' && 'bg-gray-300 text-gray-900',
+      variant === 'error' && 'bg-gray-800 text-white',
+      variant === 'info' && 'bg-gray-400 text-white'
     )}>
       {children}
     </span>
@@ -149,8 +154,9 @@ export const LoadingSpinner: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({
   size = 'md' 
 }) => {
   return (
+    // Статичный индикатор без анимации
     <div className={cn(
-      'animate-spin border-2 border-tg-button border-t-transparent rounded-full',
+      'rounded-full bg-gray-300',
       size === 'sm' && 'h-4 w-4',
       size === 'md' && 'h-6 w-6',
       size === 'lg' && 'h-8 w-8'

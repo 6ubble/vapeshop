@@ -26,12 +26,10 @@ export const filterProducts = (
 ): Product[] => {
   let filtered = products
 
-  // Фильтр по категории
   if (category !== 'all') {
     filtered = filtered.filter(p => p.category === category)
   }
 
-  // Поиск
   if (searchQuery.trim()) {
     const query = searchQuery.toLowerCase().trim()
     filtered = filtered.filter(p => 
@@ -69,21 +67,3 @@ export const sortProducts = (
   }
 }
 
-// === DEBOUNCE ===
-export const debounce = <T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): ((...args: Parameters<T>) => void) => {
-  let timeoutId: ReturnType<typeof setTimeout>
-  
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => func(...args), delay)
-  }
-}
-
-// === DISCOUNT CALCULATION ===
-export const getDiscount = (price: number, originalPrice?: number): number => {
-  if (!originalPrice || originalPrice <= price) return 0
-  return Math.round((1 - price / originalPrice) * 100)
-}
