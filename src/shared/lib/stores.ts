@@ -1,34 +1,35 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Product, CartItem } from '../../shared/types'
+import type { Product, CartItem, CategoryId } from '../types/types'
 
+// === CART STORE ===
 interface CartStore {
   items: CartItem[]
-  
   addItem: (product: Product) => void
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   clearCart: () => void
-  
-  get total(): number
-  get count(): number
+  getTotal: () => number
+  getCount: () => number
   hasItem: (productId: string) => boolean
 }
 
-export const useCart = create<CartStore>()(
+export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
       
-      get total() {
+      getTotal: () => {
         return get().items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
       },
       
-      get count() {
+      getCount: () => {
         return get().items.reduce((sum, item) => sum + item.quantity, 0)
       },
       
-      hasItem: (productId) => get().items.some(item => item.product.id === productId),
+      hasItem: (productId) => {
+        return get().items.some(item => item.product.id === productId)
+      },
       
       addItem: (product) => {
         window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('light')
@@ -78,3 +79,41 @@ export const useCart = create<CartStore>()(
     { name: 'vape-cart' }
   )
 )
+
+// === FILTERS STORE ===
+interface FiltersStore {
+  selectedCategory: CategoryId
+  searchQuery: string
+  sortBy: 'popular' | 'price_asc' | 'price_desc' | 'rating' | 'name'
+  
+  setCategory: (category: CategoryId) => void
+  setSearch: (query: string) => void
+  setSorting: (sort: FiltersStore['sortBy']) => void
+  clearFilters: () => void
+}
+
+export const useFiltersStore = create<FiltersStore>((set) => ({
+  selectedCategory: 'all',
+  searchQuery: '',
+  sortBy: 'popular',
+  
+  setCategory: (selectedCategory) => set({ selectedCategory }),
+  setSearch: (searchQuery) => set({ searchQuery }),
+  setSorting: (sortBy) => set({ sortBy }),
+  clearFilters: () => set({ 
+    selectedCategory: 'all', 
+    searchQuery: '', 
+    sortBy: 'popular' 
+  })
+}))
+
+// === APP UI STORE ===
+interface AppStore {
+  isCheckoutOpen: boolean
+  setCheckoutOpen: (open: boolean) => void
+}
+
+export const useAppStore = create<AppStore>((set) => ({
+  isCheckoutOpen: false,
+  setCheckoutOpen: (isCheckoutOpen) => set({ isCheckoutOpen })
+}))

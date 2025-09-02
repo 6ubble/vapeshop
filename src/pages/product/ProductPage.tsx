@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Star, Share } from 'lucide-react'
-import { Button, Card, Badge, LoadingSpinner } from '../shared/ui'
-import { AddToCartButton } from '../features/add-to-cart/ui'
-import { ProductCard } from '../widgets/product-card/ui'
-import { useProduct, useProducts } from '../entities/product/api'
-import { useTelegram } from '../shared/lib/telegram.tsx'
-import { formatPrice } from '../shared/lib/utils'
+import { Button, Card, Badge, LoadingSpinner } from '../../shared/ui'
+import { AddToCartButton } from '../../features/add_cart/AddCart'
+import { ProductCard } from '../../widgets/ProductCard'
+import { useProduct, useProducts } from '../../shared/api'
+import { useTelegram } from '../../shared/lib/Telegram'
+import { formatPrice, getDiscount } from '../../shared/lib/utils'
 
-const ProductPage: React.FC = () => {
+export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { haptic, showBackButton, hideBackButton } = useTelegram()
@@ -16,9 +16,23 @@ const ProductPage: React.FC = () => {
   const { data: product, isLoading, error } = useProduct(id!)
   const { data: allProducts = [] } = useProducts()
 
-  const relatedProducts = allProducts
-    .filter(p => p.id !== id && p.category === product?.category)
-    .slice(0, 4)
+  // Мемоизируем похожие товары
+  const relatedProducts = useMemo(() => {
+    if (!product) return []
+    return allProducts
+      .filter(p => p.id !== id && p.category === product.category)
+      .slice(0, 4)
+  }, [allProducts, product, id])
+
+  const discount = useMemo(() => 
+    product ? getDiscount(product.price, product.originalPrice) : 0, 
+    [product]
+  )
+
+  const handleRelatedProductClick = useCallback((productId: string) => {
+    haptic.light()
+    navigate(`/product/${productId}`)
+  }, [haptic, navigate])
 
   useEffect(() => {
     showBackButton(() => {
@@ -53,12 +67,9 @@ const ProductPage: React.FC = () => {
     )
   }
 
-  const discount = product.originalPrice 
-    ? Math.round((1 - product.price / product.originalPrice) * 100)
-    : 0
-
   return (
     <div className="space-y-6">
+      {/* Шапка */}
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"
@@ -74,13 +85,14 @@ const ProductPage: React.FC = () => {
           variant="ghost" 
           onClick={() => {
             haptic.light()
-            // Share functionality
+            // TODO: Share functionality
           }}
         >
           <Share size={20} />
         </Button>
       </div>
 
+      {/* Изображение товара */}
       <div className="aspect-square rounded-xl overflow-hidden bg-white shadow-lg">
         <img
           src={product.image}
@@ -89,6 +101,7 @@ const ProductPage: React.FC = () => {
         />
       </div>
 
+      {/* Информация о товаре */}
       <Card>
         <div className="space-y-4">
           <div className="flex justify-between items-start">
@@ -134,8 +147,10 @@ const ProductPage: React.FC = () => {
         </div>
       </Card>
 
+      {/* Кнопка добавления в корзину */}
       <AddToCartButton product={product} />
 
+      {/* Описание */}
       <Card>
         <h3 className="font-semibold mb-3">Описание товара</h3>
         <div className="prose prose-sm max-w-none text-tg-text">
@@ -147,6 +162,7 @@ const ProductPage: React.FC = () => {
         </div>
       </Card>
 
+      {/* Похожие товары */}
       {relatedProducts.length > 0 && (
         <div>
           <h3 className="font-semibold mb-3 text-lg">Похожие товары</h3>
@@ -156,10 +172,7 @@ const ProductPage: React.FC = () => {
               <ProductCard
                 key={relatedProduct.id}
                 product={relatedProduct}
-                onClick={() => {
-                  haptic.light()
-                  navigate(`/product/${relatedProduct.id}`)
-                }}
+                onClick={() => handleRelatedProductClick(relatedProduct.id)}
                 variant="grid"
               />
             ))}
@@ -169,5 +182,3 @@ const ProductPage: React.FC = () => {
     </div>
   )
 }
-
-export default ProductPage

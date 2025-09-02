@@ -1,11 +1,9 @@
 import React from 'react'
 
-// Utility для классов
-function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ')
-}
+const cn = (...classes: (string | undefined | null | false)[]): string => 
+  classes.filter(Boolean).join(' ')
 
-// Button
+// === BUTTON ===
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
@@ -16,35 +14,29 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
-  fullWidth = false,
-  loading = false,
+  fullWidth,
+  loading,
   className,
   children,
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 active:scale-95'
-  
-  const variants = {
-    primary: 'bg-tg-button text-tg-button-text hover:opacity-90 disabled:opacity-50',
-    secondary: 'bg-tg-secondary-bg text-tg-text hover:bg-gray-200 disabled:opacity-50',
-    ghost: 'text-tg-button hover:bg-tg-secondary-bg disabled:opacity-50',
-    danger: 'bg-red-500 text-white hover:bg-red-600 disabled:opacity-50'
-  }
-  
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2.5 text-base',
-    lg: 'px-6 py-3 text-lg'
-  }
-  
   return (
     <button
       className={cn(
-        baseStyles,
-        variants[variant],
-        sizes[size],
-        fullWidth ? 'w-full' : '',
+        'inline-flex items-center justify-center font-medium rounded-lg transition-all active:scale-95',
+        // Variants
+        variant === 'primary' && 'bg-tg-button text-tg-button-text hover:opacity-90',
+        variant === 'secondary' && 'bg-tg-secondary-bg text-tg-text hover:bg-gray-200',
+        variant === 'ghost' && 'text-tg-button hover:bg-tg-secondary-bg',
+        variant === 'danger' && 'bg-red-500 text-white hover:bg-red-600',
+        // Sizes
+        size === 'sm' && 'px-3 py-1.5 text-sm',
+        size === 'md' && 'px-4 py-2.5',
+        size === 'lg' && 'px-6 py-3 text-lg',
+        // States
+        fullWidth && 'w-full',
+        (disabled || loading) && 'opacity-50 cursor-not-allowed',
         className
       )}
       disabled={disabled || loading}
@@ -58,35 +50,21 @@ export const Button: React.FC<ButtonProps> = ({
   )
 }
 
-// Card
+// === CARD ===
 interface CardProps {
   children: React.ReactNode
-  padding?: 'none' | 'sm' | 'md' | 'lg'
   className?: string
   onClick?: () => void
 }
 
-export const Card: React.FC<CardProps> = ({
-  children,
-  padding = 'md',
-  className,
-  onClick
-}) => {
-  const paddingStyles = {
-    none: '',
-    sm: 'p-3',
-    md: 'p-4',
-    lg: 'p-6'
-  }
-  
+export const Card: React.FC<CardProps> = ({ children, className, onClick }) => {
   const Component = onClick ? 'button' : 'div'
   
   return (
     <Component
       className={cn(
-        'bg-white rounded-xl border border-gray-100 shadow-sm',
-        onClick && 'hover:shadow-md active:scale-[0.99] transition-all duration-200 cursor-pointer',
-        paddingStyles[padding],
+        'bg-white rounded-xl border border-gray-100 shadow-sm p-4',
+        onClick && 'hover:shadow-md active:scale-[0.99] transition-all cursor-pointer text-left',
         className
       )}
       onClick={onClick}
@@ -96,7 +74,7 @@ export const Card: React.FC<CardProps> = ({
   )
 }
 
-// Input
+// === INPUT ===
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   label?: string
   error?: string
@@ -122,18 +100,17 @@ export const Input: React.FC<InputProps> = ({
       
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-tg-hint">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-tg-hint">
             {icon}
           </div>
         )}
         
         <input
           className={cn(
-            'w-full px-3 py-2.5 bg-tg-secondary-bg border border-transparent rounded-lg text-tg-text placeholder-tg-hint',
-            'focus:outline-none focus:ring-2 focus:ring-tg-button focus:border-transparent',
-            'transition-all duration-200',
-            icon ? 'pl-10' : '',
-            error ? 'border-red-500' : '',
+            'w-full px-3 py-2.5 bg-tg-secondary-bg rounded-lg text-tg-text placeholder-tg-hint',
+            'focus:outline-none focus:ring-2 focus:ring-tg-button transition-all',
+            icon ? 'pl-10' : 'pl-3',
+            error && 'border border-red-500',
             className
           )}
           onChange={(e) => onChange(e.target.value)}
@@ -141,66 +118,47 @@ export const Input: React.FC<InputProps> = ({
         />
       </div>
       
-      {error && (
-        <p className="text-sm text-red-500">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   )
 }
 
-// Badge
+// === BADGE ===
 interface BadgeProps {
   children: React.ReactNode
   variant?: 'default' | 'success' | 'warning' | 'error' | 'info'
-  size?: 'sm' | 'md'
 }
 
-export const Badge: React.FC<BadgeProps> = ({
-  children,
-  variant = 'default',
-  size = 'sm'
-}) => {
-  const variants = {
-    default: 'bg-gray-100 text-gray-800',
-    success: 'bg-green-100 text-green-800',
-    warning: 'bg-orange-100 text-orange-800',
-    error: 'bg-red-100 text-red-800',
-    info: 'bg-blue-100 text-blue-800'
-  }
-  
-  const sizes = {
-    sm: 'px-2 py-0.5 text-xs',
-    md: 'px-3 py-1 text-sm'
-  }
-  
+export const Badge: React.FC<BadgeProps> = ({ children, variant = 'default' }) => {
   return (
     <span className={cn(
-      'inline-flex items-center font-medium rounded-full',
-      variants[variant],
-      sizes[size]
+      'inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full',
+      variant === 'default' && 'bg-gray-100 text-gray-800',
+      variant === 'success' && 'bg-green-100 text-green-800',
+      variant === 'warning' && 'bg-orange-100 text-orange-800',
+      variant === 'error' && 'bg-red-100 text-red-800',
+      variant === 'info' && 'bg-blue-100 text-blue-800'
     )}>
       {children}
     </span>
   )
 }
 
-// LoadingSpinner
-export const LoadingSpinner: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }) => {
-  const sizes = {
-    sm: 'h-4 w-4',
-    md: 'h-6 w-6',
-    lg: 'h-8 w-8'
-  }
-  
+// === LOADING SPINNER ===
+export const LoadingSpinner: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ 
+  size = 'md' 
+}) => {
   return (
     <div className={cn(
       'animate-spin border-2 border-tg-button border-t-transparent rounded-full',
-      sizes[size]
+      size === 'sm' && 'h-4 w-4',
+      size === 'md' && 'h-6 w-6',
+      size === 'lg' && 'h-8 w-8'
     )} />
   )
 }
 
-// EmptyState
+// === EMPTY STATE ===
 interface EmptyStateProps {
   title: string
   description?: string
@@ -219,11 +177,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div className="text-center py-12">
-      {icon && (
-        <div className="mb-4 text-tg-hint">
-          {icon}
-        </div>
-      )}
+      {icon && <div className="mb-4 text-tg-hint">{icon}</div>}
       
       <h3 className="text-lg font-medium text-tg-text mb-2">
         {title}

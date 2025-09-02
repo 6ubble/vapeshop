@@ -1,18 +1,21 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Search, Gift, Star } from 'lucide-react'
-import { Card, Badge } from '../shared/ui'
-import { ProductCard } from '../widgets/product-card/ui'
-import { useProducts } from '../entities/product/api'
-import { useTelegram } from '../shared/lib/telegram.tsx'
+import { Card, Badge } from '../../shared/ui'
+import { ProductCard } from '../../widgets/ProductCard'
+import { useProducts } from '../../shared/api'
+import { useTelegram } from '../../shared/lib/Telegram'
 
-const HomePage: React.FC = () => {
+export const HomePage: React.FC = () => {
   const navigate = useNavigate()
   const { user, haptic } = useTelegram()
   const { data: products = [] } = useProducts()
   
-  const popularProducts = products.filter(p => p.isPopular).slice(0, 4)
-  const newProducts = products.filter(p => p.isNew).slice(0, 2)
+  // Мемоизируем фильтрацию
+  const { popularProducts, newProducts } = useMemo(() => ({
+    popularProducts: products.filter(p => p.isPopular).slice(0, 4),
+    newProducts: products.filter(p => p.isNew).slice(0, 2)
+  }), [products])
 
   const quickActions = [
     {
@@ -21,7 +24,7 @@ const HomePage: React.FC = () => {
       path: '/catalog?category=pods'
     },
     {
-      title: 'Одноразовые',
+      title: 'Одноразовые', 
       emoji: '💨',
       path: '/catalog?category=disposable'
     },
@@ -37,8 +40,14 @@ const HomePage: React.FC = () => {
     }
   ]
 
+  const handleProductClick = React.useCallback((productId: string) => {
+    haptic.light()
+    navigate(`/product/${productId}`)
+  }, [haptic, navigate])
+
   return (
     <div className="space-y-6">
+      {/* Приветствие и поиск */}
       <Card className="text-center bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="mb-4">
           <h1 className="text-2xl font-bold mb-2">
@@ -65,6 +74,7 @@ const HomePage: React.FC = () => {
         </Link>
       </Card>
 
+      {/* Промо баннер */}
       <Card className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
         <div className="flex items-center justify-between">
           <div>
@@ -78,6 +88,7 @@ const HomePage: React.FC = () => {
         </div>
       </Card>
 
+      {/* Категории */}
       <div>
         <h2 className="text-lg font-bold mb-3">Категории</h2>
         
@@ -101,11 +112,12 @@ const HomePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Популярные товары */}
       {popularProducts.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold">🔥 Популярные товары</h2>
-            <Link to="/catalog?filter=popular">
+            <Link to="/catalog">
               <button className="text-tg-button text-sm font-medium">
                 Все →
               </button>
@@ -117,10 +129,7 @@ const HomePage: React.FC = () => {
               <ProductCard
                 key={product.id}
                 product={product}
-                onClick={() => {
-                  haptic.light()
-                  navigate(`/product/${product.id}`)
-                }}
+                onClick={() => handleProductClick(product.id)}
                 variant="grid"
               />
             ))}
@@ -128,11 +137,12 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
+      {/* Новинки */}
       {newProducts.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold">✨ Новинки</h2>
-            <Link to="/catalog?filter=new">
+            <Link to="/catalog">
               <button className="text-tg-button text-sm font-medium">
                 Все →
               </button>
@@ -144,10 +154,7 @@ const HomePage: React.FC = () => {
               <ProductCard
                 key={product.id}
                 product={product}
-                onClick={() => {
-                  haptic.light()
-                  navigate(`/product/${product.id}`)
-                }}
+                onClick={() => handleProductClick(product.id)}
                 variant="list"
               />
             ))}
@@ -157,5 +164,3 @@ const HomePage: React.FC = () => {
     </div>
   )
 }
-
-export default HomePage

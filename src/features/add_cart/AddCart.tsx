@@ -1,9 +1,9 @@
 import React from 'react'
 import { Minus, Plus, ShoppingCart } from 'lucide-react'
-import { Button } from '../../shared/ui/index'
-import { useCart } from '../../entities/cart/model'
+import { Button } from '../../shared/ui'
+import { useCartStore } from '../../shared/lib/stores'
 import { formatPrice } from '../../shared/lib/utils'
-import type { Product } from '../../shared/types'
+import type { Product } from '../../shared/types/types'
 
 interface AddToCartButtonProps {
   product: Product
@@ -14,11 +14,12 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
   product,
   variant = 'default'
 }) => {
-  const { items, addItem, updateQuantity, removeItem } = useCart()
+  const { items, addItem, updateQuantity, removeItem } = useCartStore()
   
   const cartItem = items.find(item => item.product.id === product.id)
   const quantity = cartItem?.quantity || 0
   
+  // Compact версия для карточек
   if (variant === 'compact') {
     if (quantity === 0) {
       return (
@@ -36,10 +37,9 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     }
     
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
         <button
-          onClick={(e) => {
-            e.stopPropagation()
+          onClick={() => {
             quantity === 1 ? removeItem(product.id) : updateQuantity(product.id, quantity - 1)
           }}
           className="w-8 h-8 bg-tg-secondary-bg text-tg-text rounded-full flex items-center justify-center hover:opacity-80 transition-all active:scale-95"
@@ -52,10 +52,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
         </span>
         
         <button
-          onClick={(e) => {
-            e.stopPropagation()
-            updateQuantity(product.id, quantity + 1)
-          }}
+          onClick={() => updateQuantity(product.id, quantity + 1)}
           className="w-8 h-8 bg-tg-button text-tg-button-text rounded-full flex items-center justify-center hover:opacity-90 transition-all active:scale-95"
         >
           <Plus size={14} />
@@ -64,7 +61,7 @@ export const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     )
   }
   
-  // Default вариант
+  // Default версия для страницы товара
   if (quantity === 0) {
     return (
       <Button

@@ -1,34 +1,25 @@
-import React, { Suspense } from 'react'
+import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { Layout } from '../widgets/layout/ui'
-import { LoadingSpinner } from '../shared/ui/index'
+import { Layout } from '../widgets/Layout'
 
-// Lazy imports
-const HomePage = React.lazy(() => import('../pages/HomePage'))
-const CatalogPage = React.lazy(() => import('../pages/CatalogPage'))
-const ProductPage = React.lazy(() => import('../pages/ProductPage'))
-const CartPage = React.lazy(() => import('../pages/CartPage'))
-const ProfilePage = React.lazy(() => import('../pages/ProfilePage'))
-
-const PageLoader = () => (
-  <div className="flex items-center justify-center py-20">
-    <LoadingSpinner size="lg" />
-  </div>
-)
+// Прямые импорты для лучшей производительности
+import { HomePage } from '../pages/home/HomePage'
+import { CatalogPage } from '../pages/catalog/CatalogPage'
+import { ProductPage } from '../pages/product/ProductPage'
+import { CartPage } from '../pages/cart/CartPage'
+import { ProfilePage } from '../pages/profile/ProfilePage'
 
 const App: React.FC = () => {
   return (
     <Layout>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/catalog" element={<CatalogPage />} />
-          <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/catalog" element={<CatalogPage />} />
+        <Route path="/product/:id" element={<ProductPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Layout>
   )
 }

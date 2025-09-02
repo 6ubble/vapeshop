@@ -1,8 +1,8 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Home, Search, ShoppingCart, User } from 'lucide-react'
-import { useCart } from '../../entities/cart/model'
-import { useTelegram } from '../../shared/lib/telegram.tsx'
+import { useCartStore } from '../shared/lib/stores'
+import { useTelegram } from '../shared/lib/Telegram'
 
 const navItems = [
   { path: '/', icon: Home, label: 'Главная', exactMatch: true },
@@ -13,7 +13,7 @@ const navItems = [
 
 export const Navigation: React.FC = () => {
   const location = useLocation()
-  const { count } = useCart()
+  const count = useCartStore(state => state.getCount())
   const { haptic } = useTelegram()
   
   const isActive = (path: string, exactMatch: boolean) => {

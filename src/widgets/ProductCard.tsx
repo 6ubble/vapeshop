@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { Star } from 'lucide-react'
-import { Card, Badge } from '../../shared/ui'
-import { AddToCartButton } from '../../features/add-to-cart/ui'
-import { formatPrice } from '../../shared/lib/utils'
-import type { Product } from '../../shared/types'
+import { Card, Badge } from '../shared/ui'
+import { AddToCartButton } from '../features/add_cart/AddCart'
+import { formatPrice, getDiscount } from '../shared/lib/utils'
+import type { Product } from '../shared/types/types'
 
 interface ProductCardProps {
   product: Product
@@ -11,14 +11,12 @@ interface ProductCardProps {
   onClick?: () => void
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({
+export const ProductCard: React.FC<ProductCardProps> = memo(({
   product,
   variant = 'grid',
   onClick
 }) => {
-  const discount = product.originalPrice 
-    ? Math.round((1 - product.price / product.originalPrice) * 100)
-    : 0
+  const discount = getDiscount(product.price, product.originalPrice)
 
   if (variant === 'grid') {
     return (
@@ -71,11 +69,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               )}
             </div>
             
-            {product.inStock ? (
-              <div className="text-xs text-green-600">В наличии</div>
-            ) : (
-              <div className="text-xs text-red-500">Нет в наличии</div>
-            )}
+            <div className="text-xs">
+              {product.inStock ? (
+                <span className="text-green-600">В наличии</span>
+              ) : (
+                <span className="text-red-500">Нет в наличии</span>
+              )}
+            </div>
           </div>
           
           <AddToCartButton product={product} variant="compact" />
@@ -84,6 +84,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     )
   }
 
+  // List variant
   return (
     <Card className="flex gap-4 relative">
       <div 
@@ -117,9 +118,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <span className="text-sm">{product.rating}</span>
             </div>
             
-            {product.isNew && <Badge variant="info" size="sm">Новинка</Badge>}
-            {product.isPopular && <Badge variant="warning" size="sm">Хит</Badge>}
-            {discount > 0 && <Badge variant="error" size="sm">-{discount}%</Badge>}
+            {product.isNew && <Badge variant="info">Новинка</Badge>}
+            {product.isPopular && <Badge variant="warning">Хит</Badge>}
+            {discount > 0 && <Badge variant="error">-{discount}%</Badge>}
           </div>
         </div>
         
@@ -151,4 +152,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
     </Card>
   )
-}
+})
+
+ProductCard.displayName = 'ProductCard'

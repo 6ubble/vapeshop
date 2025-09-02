@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
 import { MapPin, Phone, User } from 'lucide-react'
 import { Button, Input, Card } from '../../shared/ui'
-import { useCart } from '../../entities/cart/model'
-import { useCreateOrder } from '../../entities/order/api'
-import { useTelegram } from '../../shared/lib/telegram.tsx'
+import { useCartStore } from '../../shared/lib/stores'
+import { useCreateOrder } from '../../shared/api'
+import { useTelegram } from '../../shared/lib/Telegram'
 import { formatPrice } from '../../shared/lib/utils'
 
 export const CheckoutForm: React.FC = () => {
-  const { items, total } = useCart()
+  const { items } = useCartStore()
+  const total = useCartStore(state => state.getTotal())
   const { user, haptic, showAlert } = useTelegram()
   const createOrderMutation = useCreateOrder()
   
@@ -43,6 +44,8 @@ export const CheckoutForm: React.FC = () => {
     haptic.medium()
 
     try {
+      const deliveryFee = formData.deliveryType === 'delivery' ? 300 : 0
+      
       const orderData = {
         customer: {
           name: formData.name,
@@ -61,7 +64,7 @@ export const CheckoutForm: React.FC = () => {
           address: formData.deliveryType === 'delivery' ? formData.address : 'Самовывоз',
           comment: formData.comment
         },
-        total: total + (formData.deliveryType === 'delivery' ? 300 : 0)
+        total: total + deliveryFee
       }
 
       await createOrderMutation.mutateAsync(orderData)
